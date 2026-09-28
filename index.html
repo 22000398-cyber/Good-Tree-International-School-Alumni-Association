@@ -90,6 +90,13 @@
     .history-activity-video { width: 100%; aspect-ratio: 16 / 9; border: 0; margin-bottom: 16px; }
     .history-activity-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
     .history-activity-photos img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; }
+    .member-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+    .member-card { overflow: hidden; background: #fff; border: 1px solid #e8eee9; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
+    .member-card img, .member-photo-placeholder { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: #eaf2ed; }
+    .member-photo-placeholder { display: grid; place-items: center; color: #78a98d; font-size: 42px; }
+    .member-card-info { padding: 16px; }
+    .member-card-info h3 { color: #004d2c; font-size: 19px; margin-bottom: 8px; }
+    .member-card-info p { color: #666; font-size: 14px; margin: 3px 0; }
 
     @media (max-width: 640px) {
       header { position: relative; background: #00331d; }
@@ -209,8 +216,17 @@
       <div class="card" id="directory">
         <h3>동문 명부 및 등록</h3>
         <p>동문 명부 등록 및 변경된 개인정보 수정을 원하시면 아래 버튼을 눌러주세요.</p>
-        <button class="btn" onclick="alert('동문 등록 신청 양식으로 이동합니다.')">동문 등록 신청하기</button>
+        <button class="btn" onclick="openModal('networkModal')">동문 네트워크 보기</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 동문 네트워크 Modal -->
+  <div id="networkModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('networkModal')">&times;</span>
+      <h2 class="modal-title">동문 네트워크</h2>
+      <div id="memberGrid" class="member-grid"></div>
     </div>
   </div>
 
@@ -464,6 +480,18 @@
         <input id="historyActivityPhotos" type="file" accept="image/*" multiple>
         <button class="btn" style="margin-top:8px;" onclick="saveHistoryActivity()">지난 활동 저장하기</button>
       </div>
+
+      <hr style="margin:25px 0;">
+
+      <div class="form-group">
+        <label>동문 네트워크 멤버 등록</label>
+        <input type="text" id="memberName" placeholder="이름" style="margin-bottom:8px;">
+        <input type="text" id="memberMajor" placeholder="전공" style="margin-bottom:8px;">
+        <input type="text" id="memberCohort" placeholder="졸업 기수 (예: 12기)" style="margin-bottom:8px;">
+        <label for="memberPhoto">멤버 사진</label>
+        <input id="memberPhoto" type="file" accept="image/*">
+        <button class="btn" style="margin-top:8px;" onclick="saveMember()">멤버 저장하기</button>
+      </div>
     </div>
   </div>
 
@@ -479,12 +507,14 @@
     const photoStoreName = 'photoGallery';
     const photoStoreKey = 'alumniPhotos';
     const historyStoreName = 'historyActivities';
+    const memberStoreName = 'alumniMembers';
 
     /* 모달 열기/닫기 스크립트 */
     function openModal(id) {
       document.getElementById(id).style.display = 'flex';
       if(id === 'aboutModal') loadAlumniPhotos();
       if(id === 'historyModal') loadHistoryActivities();
+      if(id === 'networkModal') loadMembers();
     }
 
     function closeModal(id) {
@@ -606,11 +636,12 @@
 
     function openPhotoDatabase() {
       return new Promise((resolve, reject) => {
-        const request = indexedDB.open(photoDatabaseName, 2);
+        const request = indexedDB.open(photoDatabaseName, 3);
         request.onupgradeneeded = event => {
           const database = event.target.result;
           if(!database.objectStoreNames.contains(photoStoreName)) database.createObjectStore(photoStoreName);
           if(!database.objectStoreNames.contains(historyStoreName)) database.createObjectStore(historyStoreName);
+          if(!database.objectStoreNames.contains(memberStoreName)) database.createObjectStore(memberStoreName);
         };
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
@@ -647,6 +678,23 @@
       return openPhotoDatabase().then(database => new Promise((resolve, reject) => {
         const transaction = database.transaction(historyStoreName, 'readwrite');
         transaction.objectStore(historyStoreName).put(activities, 'activities');
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+      }));
+    }
+
+    function readMembersDatabase() {
+      return openPhotoDatabase().then(database => new Promise((resolve, reject) => {
+        const request = database.transaction(memberStoreName, 'readonly').objectStore(memberStoreName).get('members');
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+      }));
+    }
+
+    function writeMembersDatabase(members) {
+      return openPhotoDatabase().then(database => new Promise((resolve, reject) => {
+        const transaction = database.transaction(memberStoreName, 'readwrite');
+        transaction.objectStore(memberStoreName).put(members, 'members');
         transaction.oncomplete = () => resolve();
         transaction.onerror = () => reject(transaction.error);
       }));
@@ -828,6 +876,65 @@
         photoInput.value = '';
         alert('지난 활동이 저장되었습니다.');
       }).catch(() => alert('지난 활동 저장에 실패했습니다. 사진 용량을 줄여 다시 시도해 주세요.'));
+    }
+
+    function loadMembers() {
+      readMembersDatabase().then(members => {
+        const grid = document.getElementById('memberGrid');
+        grid.innerHTML = '';
+        if(!members.length) {
+          grid.innerHTML = '<p class="photo-gallery-empty">등록된 동문 멤버가 없습니다.</p>';
+          return;
+        }
+        members.forEach(member => renderMember(grid, member));
+      }).catch(() => {
+        document.getElementById('memberGrid').innerHTML = '<p class="photo-gallery-empty">멤버 정보를 불러오지 못했습니다.</p>';
+      });
+    }
+
+    function renderMember(container, member) {
+      const card = document.createElement('article');
+      card.className = 'member-card';
+      const imageMarkup = member.photo
+        ? `<img src="${member.photo.data}" alt="${escapeHtml(member.name)} 사진">`
+        : '<div class="member-photo-placeholder" aria-label="사진 없음">👤</div>';
+      card.innerHTML = `${imageMarkup}
+        <div class="member-card-info">
+          <h3>${escapeHtml(member.name)}</h3>
+          <p>전공: ${escapeHtml(member.major)}</p>
+          <p>졸업: ${escapeHtml(member.cohort)}</p>
+        </div>`;
+      container.appendChild(card);
+    }
+
+    function saveMember() {
+      if(!adminAuthenticated) {
+        alert('관리자 인증 후 멤버를 저장할 수 있습니다.');
+        return;
+      }
+
+      const name = document.getElementById('memberName').value.trim();
+      const major = document.getElementById('memberMajor').value.trim();
+      const cohort = document.getElementById('memberCohort').value.trim();
+      const photoInput = document.getElementById('memberPhoto');
+      if(!name || !major || !cohort) {
+        alert('이름, 전공, 졸업 기수를 입력해 주세요.');
+        return;
+      }
+
+      const photoPromise = photoInput.files[0] ? compressPhoto(photoInput.files[0]) : Promise.resolve(null);
+      photoPromise.then(photo => readMembersDatabase().then(members => {
+        const member = { name, major, cohort, photo };
+        members.push(member);
+        return writeMembersDatabase(members).then(() => member);
+      })).then(member => {
+        renderMember(document.getElementById('memberGrid'), member);
+        document.getElementById('memberName').value = '';
+        document.getElementById('memberMajor').value = '';
+        document.getElementById('memberCohort').value = '';
+        photoInput.value = '';
+        alert('동문 멤버가 저장되었습니다.');
+      }).catch(() => alert('멤버 저장에 실패했습니다.'));
     }
   </script>
 </body>
