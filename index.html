@@ -126,6 +126,13 @@
     .officer-card { padding: 24px; border: 1px solid #dce9df; border-radius: 14px; background: #f6fbf7; box-shadow: 0 4px 14px rgba(0,0,0,0.06); text-align: center; }
     .officer-role { color: #6d8d75; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
     .officer-name { color: #004d2c; font-size: 22px; font-weight: 700; }
+    .qt-share-form { max-width: 760px; margin: 30px auto 0; padding: 24px; border-radius: 14px; background: #f5faf6; border: 1px solid #dce9df; }
+    .qt-share-form h3 { color: #004d2c; margin-bottom: 16px; }
+    .qt-entry-list { max-width: 760px; margin: 24px auto 0; }
+    .qt-entry { padding: 18px 0; border-bottom: 1px solid #e4ebe5; }
+    .qt-entry-meta { color: #78907d; font-size: 13px; margin-bottom: 6px; }
+    .qt-entry-type { color: #004d2c; font-weight: 700; margin-bottom: 6px; }
+    .qt-entry-text { white-space: pre-wrap; color: #444; line-height: 1.8; }
 
     @media (max-width: 640px) {
       header { position: relative; background: #00331d; }
@@ -465,6 +472,23 @@
           하나님께 드리는 우리의 봉사는 우리가 인정을 받기 위함이 아니라, 오직 주님을 향한 사랑의 표현이어야 합니다. 오늘 하루도 나의 최고치를 주님의 최고치에 드리는 삶을 사십시오.
         </p>
       </div>
+      <div class="qt-share-form">
+        <h3>오늘의 묵상 나누기</h3>
+        <div class="form-group">
+          <label for="qtShareType">작성 유형</label>
+          <select id="qtShareType">
+            <option>묵상글</option>
+            <option>감사 제목</option>
+            <option>기도 제목</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="qtShareText">내용</label>
+          <textarea id="qtShareText" rows="5" placeholder="오늘의 묵상이나 감사, 기도 제목을 적어 주세요."></textarea>
+        </div>
+        <button class="btn" type="button" onclick="saveQTEntry()">저장하기</button>
+      </div>
+      <div id="qtEntryList" class="qt-entry-list"></div>
     </div>
   </div>
 
@@ -545,6 +569,7 @@
       if(id === 'aboutModal') loadAlumniPhotos();
       if(id === 'historyModal') loadHistoryActivities();
       if(id === 'networkModal') loadMembers();
+      if(id === 'qtModal') loadQTEntries();
     }
 
     function closeModal(id) {
@@ -601,6 +626,47 @@
     function loadQT(date) {
       document.getElementById('qtTitle').innerText = `${date} 묵상: 주님과의 친밀한 교제`;
       document.getElementById('qtBody').innerText = `${date}의 묵상 구절입니다. 주님의 말씀 안에서 거하는 기쁨을 누리시기 바랍니다.`;
+    }
+
+    function saveQTEntry() {
+      const textInput = document.getElementById('qtShareText');
+      const text = textInput.value.trim();
+      if(!text) {
+        alert('내용을 입력해 주세요.');
+        return;
+      }
+
+      const entries = JSON.parse(localStorage.getItem('qtEntries') || '[]');
+      entries.unshift({
+        type: document.getElementById('qtShareType').value,
+        text,
+        date: new Date().toLocaleString('ko-KR')
+      });
+      localStorage.setItem('qtEntries', JSON.stringify(entries));
+      textInput.value = '';
+      loadQTEntries();
+    }
+
+    function loadQTEntries() {
+      const list = document.getElementById('qtEntryList');
+      if(!list) return;
+      const entries = JSON.parse(localStorage.getItem('qtEntries') || '[]');
+      list.innerHTML = '';
+      entries.forEach(entry => {
+        const article = document.createElement('article');
+        article.className = 'qt-entry';
+        const meta = document.createElement('p');
+        meta.className = 'qt-entry-meta';
+        meta.textContent = entry.date;
+        const type = document.createElement('p');
+        type.className = 'qt-entry-type';
+        type.textContent = entry.type;
+        const body = document.createElement('p');
+        body.className = 'qt-entry-text';
+        body.textContent = entry.text;
+        article.append(meta, type, body);
+        list.appendChild(article);
+      });
     }
 
     function copyDonationAccount() {
