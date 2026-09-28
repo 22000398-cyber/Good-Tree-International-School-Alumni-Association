@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://22000398-cyber.github.io/Good-Tree-International-School-Alumni-Association/sitemap.xml
