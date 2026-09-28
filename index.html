@@ -35,6 +35,8 @@
     .hero h1 { font-size: 48px; font-weight: 700; margin-bottom: 12px; letter-spacing: -1px; }
     .hero p { font-size: 20px; font-weight: 300; opacity: 0.9; }
     .hero h1, .hero p { position: relative; z-index: 2; }
+    .hero-audio-button { position: relative; z-index: 2; margin-top: 18px; padding: 10px 18px; border: 1px solid rgba(255,255,255,0.7); border-radius: 999px; background: rgba(0,0,0,0.35); color: #fff; cursor: pointer; font-size: 14px; }
+    .hero-audio-button:hover { background: rgba(0,0,0,0.6); }
 
     /* 메인 컨테이너 */
     .container { max-width: 1200px; margin: -50px auto 60px; position: relative; z-index: 10; padding: 0 20px; }
@@ -176,7 +178,7 @@
   <section class="hero">
     <video
       class="hero-video-background"
-      src="동문회%20수련회.mp4"
+      src="retreat.mp4"
       aria-label="동문회 수련회 배경 영상"
       autoplay
       muted
@@ -185,6 +187,7 @@
     </video>
     <h1>Good-Tree International School</h1>
     <p>자랑스러운 좋은나무국제학교 동문 여러분의 공간입니다.</p>
+    <button id="heroAudioButton" class="hero-audio-button" type="button" onclick="toggleHeroSound()">🔇 소리 켜기</button>
   </section>
 
   <!-- 컨테이너 -->
@@ -535,6 +538,14 @@
     function loadQT(date) {
       document.getElementById('qtTitle').innerText = `${date} 묵상: 주님과의 친밀한 교제`;
       document.getElementById('qtBody').innerText = `${date}의 묵상 구절입니다. 주님의 말씀 안에서 거하는 기쁨을 누리시기 바랍니다.`;
+    }
+
+    function toggleHeroSound() {
+      const video = document.querySelector('.hero-video-background');
+      const button = document.getElementById('heroAudioButton');
+      video.muted = !video.muted;
+      video.play();
+      button.innerText = video.muted ? '🔇 소리 켜기' : '🔊 소리 끄기';
     }
 
     function renderAlumniPhotos(container, photos) {
