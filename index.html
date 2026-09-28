@@ -27,11 +27,14 @@
     /* 히어로 섹션 */
     .hero {
       position: relative; height: 75vh; min-height: 500px;
-      background: linear-gradient(rgba(0, 51, 29, 0.55), rgba(0, 20, 10, 0.75)), url('https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+      overflow: hidden; background: #00331d;
       display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; text-align: center; padding: 0 20px;
     }
+    .hero::after { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(rgba(0, 51, 29, 0.55), rgba(0, 20, 10, 0.78)); }
+    .hero-video-background { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; border: 0; object-fit: cover; pointer-events: none; }
     .hero h1 { font-size: 48px; font-weight: 700; margin-bottom: 12px; letter-spacing: -1px; }
     .hero p { font-size: 20px; font-weight: 300; opacity: 0.9; }
+    .hero h1, .hero p { position: relative; z-index: 2; }
 
     /* 메인 컨테이너 */
     .container { max-width: 1200px; margin: -50px auto 60px; position: relative; z-index: 10; padding: 0 20px; }
@@ -78,13 +81,42 @@
     .photo-carousel-button.previous { left: 0; }
     .photo-carousel-button.next { right: 0; }
     .photo-carousel-status { margin-top: 12px; color: #666; font-size: 14px; text-align: center; }
+    .history-activity { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #eee; }
+    .history-activity h3 { color: #004d2c; margin-bottom: 6px; }
+    .history-activity-date { color: #888; font-size: 14px; margin-bottom: 12px; }
+    .history-activity-description { white-space: pre-wrap; font-size: 16px; line-height: 1.8; margin-bottom: 16px; }
+    .history-activity-video { width: 100%; aspect-ratio: 16 / 9; border: 0; margin-bottom: 16px; }
+    .history-activity-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+    .history-activity-photos img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; }
 
     @media (max-width: 640px) {
+      header { position: relative; background: #00331d; }
+      .top-utility { justify-content: center; flex-wrap: wrap; gap: 8px 16px; padding: 10px 16px; }
+      .top-utility a { margin-left: 0; font-size: 12px; }
+      .navbar { display: block; padding: 14px 16px 18px; }
+      .logo { justify-content: center; font-size: 18px; text-align: center; }
+      .logo img { height: 34px; margin-right: 8px; }
+      .nav-links { justify-content: center; flex-wrap: wrap; gap: 8px 16px; margin-top: 16px; }
+      .nav-links li { margin-left: 0; }
+      .nav-links a { font-size: 13px; }
+      .hero { height: 58vh; min-height: 360px; padding: 0 18px; }
+      .hero h1 { font-size: clamp(28px, 9vw, 42px); line-height: 1.2; }
+      .hero p { font-size: 16px; line-height: 1.5; }
+      .container { margin: 24px auto 40px; padding: 0 16px; }
+      .card-grid { grid-template-columns: 1fr; gap: 16px; }
+      .card { padding: 28px 20px; }
       .modal-content { padding: 48px 20px 30px; }
       .modal-title { font-size: 23px; }
+      .form-row { display: block; }
+      .form-row .form-group { margin-bottom: 20px; }
+      .about-modal-body { width: 100%; }
       .photo-carousel { padding: 0 42px; }
       .photo-carousel-stage img { height: 44vh; }
       .photo-carousel-button { width: 36px; height: 36px; font-size: 22px; }
+      .media-gallery-title { font-size: 19px; }
+      .video-grid { grid-template-columns: 1fr; }
+      .history-activity-photos { grid-template-columns: 1fr 1fr; }
+      .close-btn { top: 14px; right: 16px; font-size: 28px; }
     }
     
     .close-btn { position: absolute; top: 25px; right: 30px; font-size: 32px; cursor: pointer; color: #888; transition: color 0.2s; }
@@ -111,11 +143,6 @@
     .video-card { background: #fff; padding: 12px; border-radius: 10px; box-shadow: 0 3px 12px rgba(0,0,0,0.07); border: 1px solid #f0f0f0; }
     .video-frame { aspect-ratio: 16 / 9; margin-bottom: 10px; border-radius: 8px; overflow: hidden; }
     .video-card h4 { color: #333; font-size: 14px; line-height: 1.5; }
-
-    @media (max-width: 640px) {
-      .video-grid { grid-template-columns: 1fr; }
-      .media-gallery-title { font-size: 19px; }
-    }
 
     /* 푸터 */
     footer { background-color: #1a1a1a; color: #888; padding: 40px 20px; text-align: center; font-size: 14px; }
@@ -147,6 +174,15 @@
 
   <!-- 히어로 섹션 -->
   <section class="hero">
+    <video
+      class="hero-video-background"
+      src="동문회%20수련회.mp4"
+      aria-label="동문회 수련회 배경 영상"
+      autoplay
+      muted
+      loop
+      playsinline>
+    </video>
     <h1>Good-Tree International School</h1>
     <p>자랑스러운 좋은나무국제학교 동문 여러분의 공간입니다.</p>
   </section>
@@ -409,6 +445,19 @@
         <button class="btn" style="margin-top:8px;" onclick="saveAlumniPhotos()">사진 저장하기</button>
         <div id="adminPhotoPreview" class="photo-preview"></div>
       </div>
+
+      <hr style="margin:25px 0;">
+
+      <div class="form-group">
+        <label>지난 활동 등록</label>
+        <input type="text" id="historyActivityTitle" placeholder="활동 제목" style="margin-bottom:8px;">
+        <input type="date" id="historyActivityDate" style="margin-bottom:8px;">
+        <textarea id="historyActivityDescription" rows="4" placeholder="활동 설명"></textarea>
+        <input type="url" id="historyActivityVideo" placeholder="YouTube 영상 주소 (선택)" style="margin-top:8px;">
+        <label for="historyActivityPhotos" style="margin-top:12px;">활동 사진</label>
+        <input id="historyActivityPhotos" type="file" accept="image/*" multiple>
+        <button class="btn" style="margin-top:8px;" onclick="saveHistoryActivity()">지난 활동 저장하기</button>
+      </div>
     </div>
   </div>
 
@@ -423,11 +472,13 @@
     const photoDatabaseName = 'goodTreeAlumniPhotoDatabase';
     const photoStoreName = 'photoGallery';
     const photoStoreKey = 'alumniPhotos';
+    const historyStoreName = 'historyActivities';
 
     /* 모달 열기/닫기 스크립트 */
     function openModal(id) {
       document.getElementById(id).style.display = 'flex';
       if(id === 'aboutModal') loadAlumniPhotos();
+      if(id === 'historyModal') loadHistoryActivities();
     }
 
     function closeModal(id) {
@@ -536,8 +587,12 @@
 
     function openPhotoDatabase() {
       return new Promise((resolve, reject) => {
-        const request = indexedDB.open(photoDatabaseName, 1);
-        request.onupgradeneeded = () => request.result.createObjectStore(photoStoreName);
+        const request = indexedDB.open(photoDatabaseName, 2);
+        request.onupgradeneeded = event => {
+          const database = event.target.result;
+          if(!database.objectStoreNames.contains(photoStoreName)) database.createObjectStore(photoStoreName);
+          if(!database.objectStoreNames.contains(historyStoreName)) database.createObjectStore(historyStoreName);
+        };
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
       });
@@ -556,6 +611,23 @@
       return openPhotoDatabase().then(database => new Promise((resolve, reject) => {
         const transaction = database.transaction(photoStoreName, 'readwrite');
         transaction.objectStore(photoStoreName).put(photos, photoStoreKey);
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+      }));
+    }
+
+    function readHistoryDatabase() {
+      return openPhotoDatabase().then(database => new Promise((resolve, reject) => {
+        const request = database.transaction(historyStoreName, 'readonly').objectStore(historyStoreName).get('activities');
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+      }));
+    }
+
+    function writeHistoryDatabase(activities) {
+      return openPhotoDatabase().then(database => new Promise((resolve, reject) => {
+        const transaction = database.transaction(historyStoreName, 'readwrite');
+        transaction.objectStore(historyStoreName).put(activities, 'activities');
         transaction.oncomplete = () => resolve();
         transaction.onerror = () => reject(transaction.error);
       }));
@@ -640,6 +712,103 @@
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
+    }
+
+    function getYouTubeEmbedUrl(url) {
+      try {
+        const parsedUrl = new URL(url);
+        let videoId = parsedUrl.searchParams.get('v');
+        if(parsedUrl.hostname === 'youtu.be') videoId = parsedUrl.pathname.slice(1);
+        if(!videoId || !/^[A-Za-z0-9_-]{11}$/.test(videoId)) return '';
+        return `https://www.youtube-nocookie.com/embed/${videoId}`;
+      } catch(error) {
+        return '';
+      }
+    }
+
+    function loadHistoryActivities() {
+      readHistoryDatabase().then(activities => {
+        const historyList = document.getElementById('historyList');
+        historyList.querySelectorAll('[data-history-saved]').forEach(activity => activity.remove());
+        activities.forEach(activity => appendHistoryActivity(historyList, activity));
+      }).catch(() => {});
+    }
+
+    function appendHistoryActivity(container, activity) {
+      const article = document.createElement('article');
+      article.className = 'history-activity';
+      article.dataset.historySaved = 'true';
+      article.innerHTML = `
+        <h3>${escapeHtml(activity.title)}</h3>
+        <p class="history-activity-date">${escapeHtml(activity.date)}</p>
+        <p class="history-activity-description">${escapeHtml(activity.description)}</p>
+      `;
+
+      const videoUrl = getYouTubeEmbedUrl(activity.videoUrl || '');
+      if(videoUrl) {
+        const video = document.createElement('iframe');
+        video.className = 'history-activity-video';
+        video.src = videoUrl;
+        video.title = activity.title;
+        video.allowFullscreen = true;
+        article.appendChild(video);
+      }
+
+      if(activity.photos && activity.photos.length) {
+        const photoGrid = document.createElement('div');
+        photoGrid.className = 'history-activity-photos';
+        activity.photos.forEach(photo => {
+          const image = document.createElement('img');
+          image.src = photo.data;
+          image.alt = photo.name;
+          photoGrid.appendChild(image);
+        });
+        article.appendChild(photoGrid);
+      }
+      container.appendChild(article);
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, character => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      }[character]));
+    }
+
+    function saveHistoryActivity() {
+      if(!adminAuthenticated) {
+        alert('관리자 인증 후 지난 활동을 저장할 수 있습니다.');
+        return;
+      }
+
+      const title = document.getElementById('historyActivityTitle').value.trim();
+      const date = document.getElementById('historyActivityDate').value;
+      const description = document.getElementById('historyActivityDescription').value.trim();
+      const videoUrl = document.getElementById('historyActivityVideo').value.trim();
+      const photoInput = document.getElementById('historyActivityPhotos');
+      if(!title || !date || !description) {
+        alert('활동 제목, 날짜, 설명을 입력해 주세요.');
+        return;
+      }
+      if(videoUrl && !getYouTubeEmbedUrl(videoUrl)) {
+        alert('올바른 YouTube 영상 주소를 입력해 주세요.');
+        return;
+      }
+
+      Promise.all(Array.from(photoInput.files).map(compressPhoto)).then(photos => {
+        return readHistoryDatabase().then(activities => {
+          const activity = { title, date, description, videoUrl, photos };
+          activities.push(activity);
+          return writeHistoryDatabase(activities).then(() => activity);
+        });
+      }).then(activity => {
+        appendHistoryActivity(document.getElementById('historyList'), activity);
+        document.getElementById('historyActivityTitle').value = '';
+        document.getElementById('historyActivityDate').value = '';
+        document.getElementById('historyActivityDescription').value = '';
+        document.getElementById('historyActivityVideo').value = '';
+        photoInput.value = '';
+        alert('지난 활동이 저장되었습니다.');
+      }).catch(() => alert('지난 활동 저장에 실패했습니다. 사진 용량을 줄여 다시 시도해 주세요.'));
     }
   </script>
 </body>
