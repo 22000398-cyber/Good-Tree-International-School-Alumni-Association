@@ -226,6 +226,7 @@
     <div class="modal-content">
       <span class="close-btn" onclick="closeModal('networkModal')">&times;</span>
       <h2 class="modal-title">동문 네트워크</h2>
+      <p id="memberCount" style="color:#666; margin-bottom:20px;">총 0명</p>
       <div id="memberGrid" class="member-grid"></div>
     </div>
   </div>
@@ -881,6 +882,7 @@
     function loadMembers() {
       readMembersDatabase().then(members => {
         const grid = document.getElementById('memberGrid');
+        document.getElementById('memberCount').innerText = `총 ${members.length}명`;
         grid.innerHTML = '';
         if(!members.length) {
           grid.innerHTML = '<p class="photo-gallery-empty">등록된 동문 멤버가 없습니다.</p>';
@@ -929,6 +931,9 @@
         return writeMembersDatabase(members).then(() => member);
       })).then(member => {
         renderMember(document.getElementById('memberGrid'), member);
+        const memberCount = document.getElementById('memberCount');
+        const currentCount = Number(memberCount.innerText.replace(/[^0-9]/g, '')) || 0;
+        memberCount.innerText = `총 ${currentCount + 1}명`;
         document.getElementById('memberName').value = '';
         document.getElementById('memberMajor').value = '';
         document.getElementById('memberCohort').value = '';
