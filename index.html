@@ -257,45 +257,29 @@
       <span class="close-btn" onclick="closeModal('donateModal')">&times;</span>
       <h2 class="modal-title">동문회 후원 및 기부 안내</h2>
       
-      <div class="account-box">
-        🏦 후원 계좌: 농협은행 301-0000-1234-56 (예금주: 좋은나무동문회)
+      <div class="account-box" id="donationAccount">
+        🏦 토스뱅크 100270205705 (예금주: GTS동문회)
+        <button type="button" class="btn" style="display:block; margin:12px auto 0; padding:8px 16px;" onclick="copyDonationAccount()">계좌번호 복사</button>
       </div>
 
-      <form onsubmit="event.preventDefault(); alert('후원 신청이 완료되었습니다. 감사합니다!'); closeModal('donateModal');">
+      <form onsubmit="directDonate(event)">
         <div class="form-row">
           <div class="form-group">
-            <label>후원 방식</label>
-            <select><option>자유 후원 (일시)</option><option>월 정기 후원</option></select>
+            <label for="donationType">후원 형태</label>
+            <select id="donationType"><option>일시 후원</option><option>월 정기 후원</option></select>
           </div>
           <div class="form-group">
-            <label>납부 구분</label>
-            <select><option>계좌이체</option><option>신용카드</option><option>자동이체(CMS)</option></select>
+            <label for="paymentType">결제 방법</label>
+            <select id="paymentType"><option>계좌이체</option><option>신용카드 결제 준비 중</option><option>자동이체(CMS) 준비 중</option></select>
           </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>후원 금액 (원)</label>
-            <input type="number" placeholder="예: 50000" required>
-          </div>
-          <div class="form-group">
-            <label>기부자 성명</label>
-            <input type="text" placeholder="홍길동" required>
-          </div>
+        <div class="form-group">
+          <label for="donationAmount">후원 금액 (원)</label>
+          <input id="donationAmount" type="number" min="1000" step="1000" placeholder="예: 50000" required>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>연락처</label>
-            <input type="tel" placeholder="010-0000-0000" required>
-          </div>
-          <div class="form-group">
-            <label>이메일</label>
-            <input type="email" placeholder="example@email.com">
-          </div>
-        </div>
-
-        <button type="submit" class="btn" style="width: 100%; margin-top: 15px; padding: 14px; font-size: 16px;">후원 신청하기</button>
+        <button type="submit" class="btn" style="width: 100%; margin-top: 15px; padding: 14px; font-size: 16px;">바로 후원하기</button>
       </form>
 
       <div class="bible-box">
@@ -571,6 +555,27 @@
     function loadQT(date) {
       document.getElementById('qtTitle').innerText = `${date} 묵상: 주님과의 친밀한 교제`;
       document.getElementById('qtBody').innerText = `${date}의 묵상 구절입니다. 주님의 말씀 안에서 거하는 기쁨을 누리시기 바랍니다.`;
+    }
+
+    function copyDonationAccount() {
+      navigator.clipboard.writeText('토스뱅크 100270205705').then(() => {
+        alert('후원 계좌번호가 복사되었습니다.');
+      }).catch(() => {
+        alert('토스뱅크 100270205705 (예금주: GTS동문회)');
+      });
+    }
+
+    function directDonate(event) {
+      event.preventDefault();
+      const amount = Number(document.getElementById('donationAmount').value).toLocaleString();
+      const donationType = document.getElementById('donationType').value;
+      const paymentType = document.getElementById('paymentType').value;
+      if(paymentType !== '계좌이체') {
+        alert('현재는 계좌이체로 바로 후원할 수 있습니다. 계좌번호를 복사해 이체해 주세요.');
+        return;
+      }
+      alert(`${amount}원 ${donationType}을 선택하셨습니다.\n토스뱅크 100270205705 (예금주: GTS동문회)로 이체해 주세요.`);
+      copyDonationAccount();
     }
 
     function toggleHeroSound() {
