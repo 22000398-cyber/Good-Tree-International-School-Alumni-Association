@@ -179,7 +179,9 @@
     <video
       class="hero-video-background"
       src="retreat.mp4"
+      poster="https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=1920&q=80"
       aria-label="동문회 수련회 배경 영상"
+      preload="auto"
       autoplay
       muted
       loop
@@ -187,7 +189,7 @@
     </video>
     <h1>Good-Tree International School</h1>
     <p>자랑스러운 좋은나무국제학교 동문 여러분의 공간입니다.</p>
-    <button id="heroAudioButton" class="hero-audio-button" type="button" onclick="toggleHeroSound()">🔇 소리 켜기</button>
+    <button id="heroAudioButton" class="hero-audio-button" type="button" onclick="toggleHeroSound()">▶ 영상 재생 / 소리 켜기</button>
   </section>
 
   <!-- 컨테이너 -->
@@ -543,8 +545,13 @@
     function toggleHeroSound() {
       const video = document.querySelector('.hero-video-background');
       const button = document.getElementById('heroAudioButton');
+      if(video.paused) {
+        video.muted = false;
+        video.play();
+        button.innerText = '🔊 소리 끄기';
+        return;
+      }
       video.muted = !video.muted;
-      video.play();
       button.innerText = video.muted ? '🔇 소리 켜기' : '🔊 소리 끄기';
     }
 
