@@ -142,6 +142,13 @@
     .qt-entry-meta { color: #78907d; font-size: 13px; margin-bottom: 6px; }
     .qt-entry-type { color: #004d2c; font-weight: 700; margin-bottom: 6px; }
     .qt-entry-text { white-space: pre-wrap; color: #444; line-height: 1.8; }
+    .school-story-intro { margin: 0 0 22px; color: #5d6c60; }
+    .school-story-form { width: 100%; margin: 20px 0 34px; padding: 24px; border: 1px solid #dce9df; border-radius: 12px; background: #f5faf6; }
+    .school-story-list { width: 100%; }
+    .school-story-entry { padding: 22px 0; border-bottom: 1px solid #e4ebe5; }
+    .school-story-entry h3 { margin-bottom: 8px; color: #004d2c; }
+    .school-story-meta { margin-bottom: 12px; color: #78907d; font-size: 14px; }
+    .school-story-body { color: #444; line-height: 1.9; white-space: pre-wrap; }
 
     @media (max-width: 640px) {
       header { position: relative; background: #00331d; }
@@ -223,6 +230,7 @@
         <li><a onclick="openModal('networkModal')">동문네트워크</a></li>
         <li><a onclick="openModal('officerModal')">동문회 임원진</a></li>
         <li><a onclick="openModal('historyModal')">동문회 지난활동</a></li>
+        <li><a onclick="openModal('schoolStoryModal')">학교 역사·동문 이야기</a></li>
         <li><a onclick="openModal('qtModal')">주님은 나의 최고봉 (QT)</a></li>
       </ul>
     </nav>
@@ -479,6 +487,51 @@
     </div>
   </div>
 
+  <!-- 학교 역사 및 졸업생 이야기 Modal -->
+  <div id="schoolStoryModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('schoolStoryModal')">&times;</span>
+      <h2 class="modal-title">학교 역사와 동문 이야기</h2>
+      <p class="school-story-intro">좋은나무국제학교의 역사, 졸업생 간증과 소감을 기록하고 나눠 주세요.</p>
+      <form class="school-story-form" onsubmit="saveSchoolStory(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="schoolStoryType">글 종류</label>
+            <select id="schoolStoryType">
+              <option>학교 역사</option>
+              <option>졸업생 간증</option>
+              <option>졸업생 소감</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="schoolStoryYear">연도</label>
+            <input id="schoolStoryYear" type="text" placeholder="예: 2018년 또는 2018년 졸업">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="schoolStoryTitle">제목</label>
+            <input id="schoolStoryTitle" type="text" placeholder="이야기 제목" required>
+          </div>
+          <div class="form-group">
+            <label for="schoolStoryAuthor">작성자</label>
+            <input id="schoolStoryAuthor" type="text" placeholder="이름 또는 익명" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="schoolStoryCohort">졸업 기수 (선택)</label>
+          <input id="schoolStoryCohort" type="text" placeholder="예: 12기">
+        </div>
+        <div class="form-group">
+          <label for="schoolStoryBody">내용</label>
+          <textarea id="schoolStoryBody" rows="7" placeholder="학교의 역사, 간증 또는 졸업 소감을 적어 주세요." required></textarea>
+        </div>
+        <button class="btn" type="submit">이야기 저장하기</button>
+      </form>
+      <div id="schoolStoryList" class="school-story-list"></div>
+    </div>
+  </div>
+
   <!-- 6. 주님은 나의 최고봉 (QT) Modal -->
   <div id="qtModal" class="modal">
     <div class="modal-content">
@@ -587,6 +640,7 @@
     const photoStoreKey = 'alumniPhotos';
     const historyStoreName = 'historyActivities';
     const memberStoreName = 'alumniMembers';
+    const schoolStoryStoreName = 'schoolStories';
 
     /* 모달 열기/닫기 스크립트 */
     function openModal(id) {
@@ -595,6 +649,7 @@
       if(id === 'historyModal') loadHistoryActivities();
       if(id === 'networkModal') loadMembers();
       if(id === 'qtModal') loadQTEntries();
+      if(id === 'schoolStoryModal') loadSchoolStories();
     }
 
     function closeModal(id) {
@@ -778,12 +833,13 @@
 
     function openPhotoDatabase() {
       return new Promise((resolve, reject) => {
-        const request = indexedDB.open(photoDatabaseName, 3);
+        const request = indexedDB.open(photoDatabaseName, 4);
         request.onupgradeneeded = event => {
           const database = event.target.result;
           if(!database.objectStoreNames.contains(photoStoreName)) database.createObjectStore(photoStoreName);
           if(!database.objectStoreNames.contains(historyStoreName)) database.createObjectStore(historyStoreName);
           if(!database.objectStoreNames.contains(memberStoreName)) database.createObjectStore(memberStoreName);
+          if(!database.objectStoreNames.contains(schoolStoryStoreName)) database.createObjectStore(schoolStoryStoreName);
         };
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
@@ -840,6 +896,76 @@
         transaction.oncomplete = () => resolve();
         transaction.onerror = () => reject(transaction.error);
       }));
+    }
+
+    function readSchoolStories() {
+      return openPhotoDatabase().then(database => new Promise((resolve, reject) => {
+        const request = database.transaction(schoolStoryStoreName, 'readonly').objectStore(schoolStoryStoreName).get('stories');
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+      }));
+    }
+
+    function writeSchoolStories(stories) {
+      return openPhotoDatabase().then(database => new Promise((resolve, reject) => {
+        const transaction = database.transaction(schoolStoryStoreName, 'readwrite');
+        transaction.objectStore(schoolStoryStoreName).put(stories, 'stories');
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+      }));
+    }
+
+    function loadSchoolStories() {
+      readSchoolStories().then(stories => {
+        const list = document.getElementById('schoolStoryList');
+        list.innerHTML = '';
+        if(!stories.length) {
+          list.innerHTML = '<p class="photo-gallery-empty">아직 등록된 학교 역사나 동문 이야기가 없습니다.</p>';
+          return;
+        }
+        stories.sort((first, second) => second.createdAt - first.createdAt);
+        stories.forEach(story => {
+          const article = document.createElement('article');
+          article.className = 'school-story-entry';
+          const heading = document.createElement('h3');
+          heading.textContent = story.title;
+          const meta = document.createElement('p');
+          meta.className = 'school-story-meta';
+          meta.textContent = [story.type, story.year, story.author, story.cohort].filter(Boolean).join(' · ');
+          const body = document.createElement('p');
+          body.className = 'school-story-body';
+          body.textContent = story.body;
+          article.append(heading, meta, body);
+          list.appendChild(article);
+        });
+      }).catch(() => {
+        document.getElementById('schoolStoryList').innerHTML = '<p class="photo-gallery-empty">이야기를 불러오지 못했습니다.</p>';
+      });
+    }
+
+    function saveSchoolStory(event) {
+      event.preventDefault();
+      const story = {
+        type: document.getElementById('schoolStoryType').value,
+        year: document.getElementById('schoolStoryYear').value.trim(),
+        title: document.getElementById('schoolStoryTitle').value.trim(),
+        author: document.getElementById('schoolStoryAuthor').value.trim(),
+        cohort: document.getElementById('schoolStoryCohort').value.trim(),
+        body: document.getElementById('schoolStoryBody').value.trim(),
+        createdAt: Date.now()
+      };
+      if(!story.title || !story.author || !story.body) {
+        alert('제목, 작성자, 내용을 입력해 주세요.');
+        return;
+      }
+      readSchoolStories().then(stories => {
+        stories.push(story);
+        return writeSchoolStories(stories);
+      }).then(() => {
+        event.target.reset();
+        loadSchoolStories();
+        alert('이야기가 저장되었습니다.');
+      }).catch(() => alert('이야기 저장에 실패했습니다.'));
     }
 
     async function getSavedAlumniPhotos() {
