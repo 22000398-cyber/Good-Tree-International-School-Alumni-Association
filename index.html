@@ -486,7 +486,7 @@
   </footer>
 
   <!-- ==================== 자바스크립트 로직 ==================== -->
-  <script>
+ <script>
     // 1. 핵심 상태 관리 변수
     let isLoggedIn = false;
     let isAdmin = false;
@@ -494,6 +494,11 @@
     let selectedQtDate = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
     // 2. 초기 데이터 베이스
+    let defaultAbout = {
+      title: "좋은나무국제학교 동문회 소개",
+      content: "좋은나무국제학교 동문회는 졸업생 간의 긴밀한 네트워크 형성과 학교 발전에 기여함을 목적으로 합니다."
+    };
+
     let notices = [
       { id: 1, title: "[공지] 2026년 정기 총회 및 동문 송년모임 안내", date: "2026.09.28", content: "2026년 정기 총회 및 동문 모임이 12월 15일에 진행됩니다. 동문 여러분의 많은 참석 바랍니다." }
     ];
@@ -513,27 +518,25 @@
     let histories = [];
     let stories = [];
 
-    // 3. 『주님은 나의 최고봉』(오스왈드 챔버스) 날짜별(월-일) 대표 QT 샘플 데이터베이스
-    // (설정되지 않은 날짜는 오스왈드 챔버스 대표 기본 말씀으로 자동 매핑됩니다)
+    // 3. QT 샘플 데이터베이스
     let qtDatabase = {
       "01-01": {
         title: "나의 최고를 그분의 최고께 드립니다",
         bible: "빌립보서 1:20 - 나의 간절한 기대와 희망을 따라 아무 일에든지 부끄러워하지 아니하고",
-        body: "우리는 하나님 앞에서 자신의 최선을 다해 살아가야 합니다. '나의 최고를 그분의 최고께 드린다'는 선언은 자신을 온전히 하나님께 헌신하는 결단입니다. 자신의 어떠함이나 능력이 아닌, 오직 그리스도의 존귀함을 나타내는 삶을 살아가십시오."
+        body: "우리는 하나님 앞에서 자신의 최선을 다해 살아가야 합니다. '나의 최고를 그분의 최고께 드린다'는 선언은 자신을 온전히 하나님께 헌신하는 결단입니다."
       },
       "01-02": {
         title: "하나님의 불타는 열정",
         bible: "고린도전서 2:2 - 내가 너희 중에서 예수 그리스도와 그가 십자가에 못 박히신 것 외에는 아무것도 알지 아니하기로 작정하였음이라",
-        body: "예수 그리스도의 십자가 외에는 그 어떤 것도 우리의 자랑이 될 수 없습니다. 내 삶의 모든 가치관과 우선순위가 오직 그리스도의 십자가 중심으로 변화될 때 참된 영적 능력이 나타납니다."
+        body: "예수 그리스도의 십자가 외에는 그 어떤 것도 우리의 자랑이 될 수 없습니다."
       },
       "09-29": {
         title: "하나님의 뜻과 나의 순종",
         bible: "요한복음 14:21 - 나의 계명을 지키는 자라야 나를 사랑하는 자니",
-        body: "순종은 하나님을 향한 사랑의 가장 확실한 증거입니다. 우리가 하나님의 말씀에 기쁨으로 응답할 때, 하나님께서는 우리 삶을 통해 자신의 크신 능력과 은혜를 나타내실 것입니다."
+        body: "순종은 하나님을 향한 사랑의 가장 확실한 증거입니다."
       }
     };
 
-    // 날짜별 댓글 저장소 { "YYYY-MM-DD": [ {author, text, date} ] }
     let qtCommentsDatabase = {};
 
     // 4. 다국어 지원
@@ -594,28 +597,45 @@
 
     // 6. 모달 제어
     function openModal(id) {
+      if (id === 'donationModal') {
+        openDonationModal();
+        return;
+      }
       renderAll();
-      document.getElementById(id).style.display = 'block';
-      document.body.style.overflow = 'hidden';
+      const targetModal = document.getElementById(id);
+      if (targetModal) {
+        targetModal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+      }
       if(id === 'qtModal') {
-        document.getElementById('qtDatePicker').value = selectedQtDate;
+        const qtPicker = document.getElementById('qtDatePicker');
+        if (qtPicker) qtPicker.value = selectedQtDate;
         onQtDateChange(selectedQtDate);
       }
     }
 
     function closeModal(id) {
-      document.getElementById(id).style.display = 'none';
-      document.body.style.overflow = 'auto';
+      if (id === 'donationModal') {
+        closeDonationModal();
+        return;
+      }
+      const targetModal = document.getElementById(id);
+      if (targetModal) {
+        targetModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+      }
     }
 
     // 7. 전체 렌더링
     function renderAll() {
-      const adminElements = ['adminNoticeForm', 'adminNetworkForm', 'adminOfficerForm', 'adminHistoryForm', 'adminStoryForm', 'adminQtForm'];
+      // 관리자 폼 노출 제어 (adminAboutForm 추가됨)
+      const adminElements = ['adminAboutForm', 'adminNoticeForm', 'adminNetworkForm', 'adminOfficerForm', 'adminHistoryForm', 'adminStoryForm', 'adminQtForm'];
       adminElements.forEach(id => {
         const el = document.getElementById(id);
         if(el) el.style.display = isAdmin ? 'block' : 'none';
       });
 
+      renderAbout();
       renderNotices();
       renderNetwork();
       renderOfficers();
@@ -624,33 +644,67 @@
       renderQt();
     }
 
-    // 공지사항 확인하기 위해서 로그인 필요를 표시(563~588)
-function renderNotices() {
-  const container = document.getElementById('noticeListContainer');
-  
-  if (notices.length === 0) {
-    container.innerHTML = '<p style="color:#888; padding:20px 0;">등록된 공지사항이 없습니다.</p>';
-    return;
-  }
+    // 동문회 소개 렌더링 및 수정
+    function renderAbout() {
+      const savedAbout = JSON.parse(localStorage.getItem('aboutData')) || defaultAbout;
+      
+      const titleEl = document.getElementById('displayAboutTitle');
+      const contentEl = document.getElementById('displayAboutContent');
+      if (titleEl) titleEl.textContent = savedAbout.title;
+      if (contentEl) contentEl.textContent = savedAbout.content;
 
-  container.innerHTML = notices.map(item => `
-    <div class="notice-list-item">
-      <div class="notice-info">
-        <div class="notice-title" onclick="toggleNoticeDetail(${item.id})">${item.title}</div>
-        <div class="notice-date">${item.date}</div>
-        
-        <!-- 로그인 여부에 따라 본문 다르게 표시 -->
-        <div id="notice-desc-${item.id}" class="notice-detail-content">
-          ${isLoggedIn 
-            ? item.content 
-            : `<span style="color:#e74c3c; cursor:pointer;" onclick="openModal('loginModal')">🔒 로그인 후 상세 내용을 확인하세요.</span>`
-          }
+      if (isAdmin) {
+        const inputTitle = document.getElementById('aboutTitleInput');
+        const inputContent = document.getElementById('aboutContentInput');
+        if (inputTitle) inputTitle.value = savedAbout.title;
+        if (inputContent) inputContent.value = savedAbout.content;
+      }
+    }
+
+    function updateAbout() {
+      if (!isAdmin) return alert("관리자 권한이 필요합니다.");
+      
+      const inputTitle = document.getElementById('aboutTitleInput');
+      const inputContent = document.getElementById('aboutContentInput');
+      
+      const title = inputTitle ? inputTitle.value.trim() : '';
+      const content = inputContent ? inputContent.value.trim() : '';
+
+      if (!title || !content) return alert("제목과 내용을 모두 입력해 주세요.");
+
+      const updatedAbout = { title, content };
+      localStorage.setItem('aboutData', JSON.stringify(updatedAbout));
+      
+      alert("동문회 소개 내용이 성공적으로 수정되었습니다.");
+      renderAbout();
+    }
+
+    // 공지사항
+    function renderNotices() {
+      const container = document.getElementById('noticeListContainer');
+      if (!container) return;
+      
+      if (notices.length === 0) {
+        container.innerHTML = '<p style="color:#888; padding:20px 0;">등록된 공지사항이 없습니다.</p>';
+        return;
+      }
+
+      container.innerHTML = notices.map(item => `
+        <div class="notice-list-item">
+          <div class="notice-info">
+            <div class="notice-title" onclick="toggleNoticeDetail(${item.id})">${item.title}</div>
+            <div class="notice-date">${item.date}</div>
+            <div id="notice-desc-${item.id}" class="notice-detail-content">
+              ${isLoggedIn 
+                ? item.content 
+                : `<span style="color:#e74c3c; cursor:pointer;" onclick="openModal('loginModal')">🔒 로그인 후 상세 내용을 확인하세요.</span>`
+              }
+            </div>
+          </div>
+          ${isAdmin ? `<button class="btn btn-danger" onclick="deleteNotice(${item.id})">삭제</button>` : ''}
         </div>
-      </div>
-      ${isAdmin ? `<button class="btn btn-danger" onclick="deleteNotice(${item.id})">삭제</button>` : ''}
-    </div>
-  `).join('');
-}
+      `).join('');
+    }
 
     function toggleNoticeDetail(id) {
       const el = document.getElementById(`notice-desc-${id}`);
@@ -683,6 +737,7 @@ function renderNotices() {
     // 동문 네트워크
     function renderNetwork() {
       const grid = document.getElementById('networkGrid');
+      if (!grid) return;
       grid.innerHTML = networkMembers.map(m => `
         <div class="officer-card">
           <p class="officer-role">${m.gen}</p>
@@ -711,40 +766,38 @@ function renderNotices() {
       renderNetwork();
     }
 
-    // 임원진 확인하기 위해서 로그인 요구(649~682)
-function renderOfficers() {
-  const grid = document.getElementById('officerGrid');
-  if (!grid) return;
+    // 임원진
+    function renderOfficers() {
+      const grid = document.getElementById('officerGrid');
+      if (!grid) return;
 
-  // 1. 로그인하지 않은 경우 안내 메시지 표시
-  if (!isLoggedIn) {
-    grid.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; padding: 40px 20px; background: #f9f9f9; border-radius: 8px;">
-        <p style="color: #666; font-size: 15px; margin-bottom: 12px;">
-          🔒 임원진 정보는 <strong>동문회 회원 로그인</strong> 후 확인하실 수 있습니다.
-        </p>
-        <button class="btn btn-primary" onclick="openModal('loginModal')">로그인하기</button>
-      </div>
-    `;
-    return;
-  }
+      if (!isLoggedIn) {
+        grid.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 40px 20px; background: #f9f9f9; border-radius: 8px;">
+            <p style="color: #666; font-size: 15px; margin-bottom: 12px;">
+              🔒 임원진 정보는 <strong>동문회 회원 로그인</strong> 후 확인하실 수 있습니다.
+            </p>
+            <button class="btn btn-primary" onclick="openModal('loginModal')">로그인하기</button>
+          </div>
+        `;
+        return;
+      }
 
-  // 2. 임원진 목록이 없는 경우
-  if (officers.length === 0) {
-    grid.innerHTML = '<p style="color:#888; grid-column: 1/-1; text-align:center; padding: 20px 0;">등록된 임원진 정보가 없습니다.</p>';
-    return;
-  }
+      if (officers.length === 0) {
+        grid.innerHTML = '<p style="color:#888; grid-column: 1/-1; text-align:center; padding: 20px 0;">등록된 임원진 정보가 없습니다.</p>';
+        return;
+      }
 
-  // 3. 로그인된 경우 정상 목록 출력
-  grid.innerHTML = officers.map(o => `
-    <div class="officer-card">
-      <p class="officer-role">${o.role}</p>
-      <p class="officer-name">${o.name}</p>
-      <p class="officer-info">${o.desc}</p>
-      ${isAdmin ? `<button class="btn btn-danger" style="margin-top:10px; padding:4px 10px; font-size:12px;" onclick="deleteOfficer(${o.id})">삭제</button>` : ''}
-    </div>
-  `).join('');
-}
+      grid.innerHTML = officers.map(o => `
+        <div class="officer-card">
+          <p class="officer-role">${o.role}</p>
+          <p class="officer-name">${o.name}</p>
+          <p class="officer-info">${o.desc}</p>
+          ${isAdmin ? `<button class="btn btn-danger" style="margin-top:10px; padding:4px 10px; font-size:12px;" onclick="deleteOfficer(${o.id})">삭제</button>` : ''}
+        </div>
+      `).join('');
+    }
+
     function addOfficer() {
       const role = document.getElementById('offRole').value;
       const name = document.getElementById('offName').value;
@@ -763,47 +816,44 @@ function renderOfficers() {
       renderOfficers();
     }
 
-    // 지난 활동 접근시 로그인 요구(701~741)
-function renderHistory() {
-  const feed = document.getElementById('historyFeed');
-  if (!feed) return;
+    // 지난 활동
+    function renderHistory() {
+      const feed = document.getElementById('historyFeed');
+      if (!feed) return;
 
-  // 1. 로그인하지 않은 경우 안내 메시지 표시
-  if (!isLoggedIn) {
-    feed.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; padding: 40px 20px; background: #f9f9f9; border-radius: 8px;">
-        <p style="color: #666; font-size: 15px; margin-bottom: 12px;">
-          🔒 지난 활동 기록은 <strong>동문회 회원 로그인</strong> 후 확인하실 수 있습니다.
-        </p>
-        <button class="btn btn-primary" onclick="openModal('loginModal')">로그인하기</button>
-      </div>
-    `;
-    return;
-  }
+      if (!isLoggedIn) {
+        feed.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 40px 20px; background: #f9f9f9; border-radius: 8px;">
+            <p style="color: #666; font-size: 15px; margin-bottom: 12px;">
+              🔒 지난 활동 기록은 <strong>동문회 회원 로그인</strong> 후 확인하실 수 있습니다.
+            </p>
+            <button class="btn btn-primary" onclick="openModal('loginModal')">로그인하기</button>
+          </div>
+        `;
+        return;
+      }
 
-  // 2. 활동 기록이 없는 경우
-  if (histories.length === 0) {
-    feed.innerHTML = '<p style="color:#888; grid-column:1/-1; text-align:center;">등록된 활동 사진/동영상이 없습니다.</p>';
-    return;
-  }
+      if (histories.length === 0) {
+        feed.innerHTML = '<p style="color:#888; grid-column:1/-1; text-align:center;">등록된 활동 사진/동영상이 없습니다.</p>';
+        return;
+      }
 
-  // 3. 로그인된 경우 정상 목록 출력
-  feed.innerHTML = histories.map(h => `
-    <div class="insta-card">
-      ${h.type === 'video' ? `<video src="${h.src}" class="insta-media" controls></video>` : `<img src="${h.src}" class="insta-media">`}
-      <div class="insta-body">
-        <div>
-          <div class="insta-title">${h.title}</div>
-          <div class="insta-desc">${h.desc}</div>
+      feed.innerHTML = histories.map(h => `
+        <div class="insta-card">
+          ${h.type === 'video' ? `<video src="${h.src}" class="insta-media" controls></video>` : `<img src="${h.src}" class="insta-media">`}
+          <div class="insta-body">
+            <div>
+              <div class="insta-title">${h.title}</div>
+              <div class="insta-desc">${h.desc}</div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="insta-date">${h.date}</span>
+              ${isAdmin ? `<button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="deleteHistory(${h.id})">삭제</button>` : ''}
+            </div>
+          </div>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span class="insta-date">${h.date}</span>
-          ${isAdmin ? `<button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="deleteHistory(${h.id})">삭제</button>` : ''}
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
+      `).join('');
+    }
 
     function addHistoryItem() {
       const title = document.getElementById('histTitle').value;
@@ -830,44 +880,41 @@ function renderHistory() {
       renderHistory();
     }
 
-   // 동문 이야기 접근시 로그인해서 접근할 수 있게 해 주고 (768~805)
-function renderStories() {
-  const feed = document.getElementById('storyFeed');
-  if (!feed) return;
+    // 동문 이야기
+    function renderStories() {
+      const feed = document.getElementById('storyFeed');
+      if (!feed) return;
 
-  // 1. 로그인하지 않은 경우 안내 메시지 표시
-  if (!isLoggedIn) {
-    feed.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; padding: 40px 20px; background: #f9f9f9; border-radius: 8px;">
-        <p style="color: #666; font-size: 15px; margin-bottom: 12px;">
-          🔒 동문 이야기는 <strong>동문회 회원 로그인</strong> 후 확인하실 수 있습니다.
-        </p>
-        <button class="btn btn-primary" onclick="openModal('loginModal')">로그인하기</button>
-      </div>
-    `;
-    return;
-  }
+      if (!isLoggedIn) {
+        feed.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 40px 20px; background: #f9f9f9; border-radius: 8px;">
+            <p style="color: #666; font-size: 15px; margin-bottom: 12px;">
+              🔒 동문 이야기는 <strong>동문회 회원 로그인</strong> 후 확인하실 수 있습니다.
+            </p>
+            <button class="btn btn-primary" onclick="openModal('loginModal')">로그인하기</button>
+          </div>
+        `;
+        return;
+      }
 
-  // 2. 이야기 목록이 없는 경우
-  if (stories.length === 0) {
-    feed.innerHTML = '<p style="color:#888; grid-column:1/-1; text-align:center;">등록된 이야기나 간증 영상이 없습니다.</p>';
-    return;
-  }
+      if (stories.length === 0) {
+        feed.innerHTML = '<p style="color:#888; grid-column:1/-1; text-align:center;">등록된 이야기나 간증 영상이 없습니다.</p>';
+        return;
+      }
 
-  // 3. 로그인된 경우 정상 목록 출력
-  feed.innerHTML = stories.map(s => `
-    <div class="insta-card">
-      ${s.src ? (s.type === 'video' ? `<video src="${s.src}" class="insta-media" controls></video>` : `<img src="${s.src}" class="insta-media">`) : ''}
-      <div class="insta-body">
-        <div>
-          <div class="insta-title">${s.title}</div>
-          <div class="insta-desc">${s.desc}</div>
+      feed.innerHTML = stories.map(s => `
+        <div class="insta-card">
+          ${s.src ? (s.type === 'video' ? `<video src="${s.src}" class="insta-media" controls></video>` : `<img src="${s.src}" class="insta-media">`) : ''}
+          <div class="insta-body">
+            <div>
+              <div class="insta-title">${s.title}</div>
+              <div class="insta-desc">${s.desc}</div>
+            </div>
+            ${isAdmin ? `<button class="btn btn-danger" style="padding:4px 8px; font-size:12px; align-self:flex-end;" onclick="deleteStory(${s.id})">삭제</button>` : ''}
+          </div>
         </div>
-        ${isAdmin ? `<button class="btn btn-danger" style="padding:4px 8px; font-size:12px; align-self:flex-end;" onclick="deleteStory(${s.id})">삭제</button>` : ''}
-      </div>
-    </div>
-  `).join('');
-}
+      `).join('');
+    }
 
     function addStoryItem() {
       const title = document.getElementById('storyTitle').value;
@@ -895,216 +942,202 @@ function renderStories() {
       renderStories();
     }
 
-    // 8. 날짜별 QT 및 댓글 처리
+    // 8. QT 제어 및 댓글
     function onQtDateChange(dateStr) {
       if(!dateStr) return;
       selectedQtDate = dateStr;
       renderQt();
     }
 
-   function renderQt() {
-  // 1. 선택된 날짜 표기 업데이트
-  const dateTextEl = document.getElementById('selectedQtDateText');
-  if (dateTextEl) dateTextEl.textContent = `(선택된 날짜: ${selectedQtDate})`;
+    function renderQt() {
+      const dateTextEl = document.getElementById('selectedQtDateText');
+      if (dateTextEl) dateTextEl.textContent = `(선택된 날짜: ${selectedQtDate})`;
 
-  // 2. localStorage 및 데이터베이스에서 선택된 날짜의 QT 말씀 로드
-  const monthDayKey = selectedQtDate.slice(5); // "MM-DD"
-  let savedQtDb = JSON.parse(localStorage.getItem('qtDatabase')) || (typeof qtDatabase !== 'undefined' ? qtDatabase : {});
-  
-  // YYYY-MM-DD 키 우선, 없으면 MM-DD 키 사용
-  let currentQt = savedQtDb[selectedQtDate] || savedQtDb[monthDayKey] || {
-    title: "하나님을 향한 무조건적 순종",
-    bible: "마태복음 6:33 - 그런즉 너희는 먼저 그의 나라와 그의 의를 구하라",
-    body: "우리의 첫 번째 관심사는 세상의 문제나 나 자신의 염려가 아닌, 하나님의 나라와 그분의 의가 되어야 합니다. 오늘 하루도 주님의 최고를 위해 나의 최선을 드립시다."
-  };
+      const monthDayKey = selectedQtDate.slice(5); // "MM-DD"
+      let savedQtDb = JSON.parse(localStorage.getItem('qtDatabase')) || (typeof qtDatabase !== 'undefined' ? qtDatabase : {});
+      
+      let currentQt = savedQtDb[selectedQtDate] || savedQtDb[monthDayKey] || {
+        title: "하나님을 향한 무조건적 순종",
+        bible: "마태복음 6:33 - 그런즉 너희는 먼저 그의 나라와 그의 의를 구하라",
+        body: "우리의 첫 번째 관심사는 세상의 문제나 나 자신의 염려가 아닌, 하나님의 나라와 그분의 의가 되어야 합니다."
+      };
 
-  // 화면 말씀 요소 업데이트
-  if (document.getElementById('displayQtTitle')) document.getElementById('displayQtTitle').textContent = currentQt.title;
-  if (document.getElementById('displayQtBible')) document.getElementById('displayQtBible').textContent = currentQt.bible;
-  if (document.getElementById('displayQtBody')) document.getElementById('displayQtBody').textContent = currentQt.body;
+      if (document.getElementById('displayQtTitle')) document.getElementById('displayQtTitle').textContent = currentQt.title;
+      if (document.getElementById('displayQtBible')) document.getElementById('displayQtBible').textContent = currentQt.bible;
+      if (document.getElementById('displayQtBody')) document.getElementById('displayQtBody').textContent = currentQt.body;
 
-  // 관리자 입력 폼 채우기
-  if (typeof isAdmin !== 'undefined' && isAdmin) {
-    if (document.getElementById('qtTitleInput')) document.getElementById('qtTitleInput').value = currentQt.title;
-    if (document.getElementById('qtBibleInput')) document.getElementById('qtBibleInput').value = currentQt.bible;
-    if (document.getElementById('qtBodyInput')) document.getElementById('qtBodyInput').value = currentQt.body;
-  }
+      if (typeof isAdmin !== 'undefined' && isAdmin) {
+        if (document.getElementById('qtTitleInput')) document.getElementById('qtTitleInput').value = currentQt.title;
+        if (document.getElementById('qtBibleInput')) document.getElementById('qtBibleInput').value = currentQt.bible;
+        if (document.getElementById('qtBodyInput')) document.getElementById('qtBodyInput').value = currentQt.body;
+      }
 
-  // 3. 해당 날짜(selectedQtDate)의 댓글/기도제목 목록 출력
-  renderQtComments();
-}
+      renderQtComments();
+    }
 
-// 1. 댓글/기도제목 목록 출력 함수
-function renderQtComments() {
-  // 최신 데이터 가져오기
-  qtCommentsDatabase = JSON.parse(localStorage.getItem('qtCommentsDatabase')) || (typeof qtCommentsDatabase !== 'undefined' ? qtCommentsDatabase : {});
+    function renderQtComments() {
+      qtCommentsDatabase = JSON.parse(localStorage.getItem('qtCommentsDatabase')) || (typeof qtCommentsDatabase !== 'undefined' ? qtCommentsDatabase : {});
 
-  // 현재 선택된 날짜(selectedQtDate)에 속한 댓글만 정확히 필터링
-  const comments = qtCommentsDatabase[selectedQtDate] || [];
-  const commentList = document.getElementById('commentList');
-  if (!commentList) return;
+      const comments = qtCommentsDatabase[selectedQtDate] || [];
+      const commentList = document.getElementById('commentList');
+      if (!commentList) return;
 
-  if (!Array.isArray(comments) || comments.length === 0) {
-    commentList.innerHTML = `<p style="color:#888; font-size:14px; padding:15px 0; text-align:center;">${selectedQtDate}에 작성된 나눔/기도제목이 없습니다. 첫 나눔을 남겨보세요!</p>`;
-    return;
-  }
+      if (!Array.isArray(comments) || comments.length === 0) {
+        commentList.innerHTML = `<p style="color:#888; font-size:14px; padding:15px 0; text-align:center;">${selectedQtDate}에 작성된 나눔/기도제목이 없습니다.</p>`;
+        return;
+      }
 
-  let myLikedComments = JSON.parse(localStorage.getItem('myLikedComments')) || [];
+      let myLikedComments = JSON.parse(localStorage.getItem('myLikedComments')) || [];
 
-  commentList.innerHTML = comments.map((c, index) => {
-    // 날짜 정보를 고유 ID에 포함시켜 타 날짜 공감과 섞임 차단
-    const commentId = c.id || (`cmt_${selectedQtDate}_${index}`);
-    const isLiked = myLikedComments.includes(`${commentId}_like`);
-    const isHearted = myLikedComments.includes(`${commentId}_heart`);
+      commentList.innerHTML = comments.map((c, index) => {
+        const commentId = c.id || (`cmt_${selectedQtDate}_${index}`);
+        const isLiked = myLikedComments.includes(`${commentId}_like`);
+        const isHearted = myLikedComments.includes(`${commentId}_heart`);
 
-    const deleteBtn = (typeof isAdmin !== 'undefined' && isAdmin) 
-      ? `<button onclick="deleteQtComment(${index})" style="background:#ff4d4f; color:#fff; border:none; border-radius:4px; padding:2px 8px; font-size:12px; cursor:pointer;">삭제</button>` 
-      : '';
+        const deleteBtn = (typeof isAdmin !== 'undefined' && isAdmin) 
+          ? `<button onclick="deleteQtComment(${index})" style="background:#ff4d4f; color:#fff; border:none; border-radius:4px; padding:2px 8px; font-size:12px; cursor:pointer;">삭제</button>` 
+          : '';
 
-    return `
-      <div class="comment-item" style="border-bottom: 1px solid #eee; padding: 12px 0;">
-        <div class="comment-author" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
-          <div>
-            <span style="font-weight:bold; font-size:14px;">${c.author || '익명'}</span>
-            <span style="font-size:11px; color:#888; margin-left:8px;">${c.time || ''}</span>
+        return `
+          <div class="comment-item" style="border-bottom: 1px solid #eee; padding: 12px 0;">
+            <div class="comment-author" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
+              <div>
+                <span style="font-weight:bold; font-size:14px;">${c.author || '익명'}</span>
+                <span style="font-size:11px; color:#888; margin-left:8px;">${c.time || ''}</span>
+              </div>
+              ${deleteBtn}
+            </div>
+            <div style="font-size:14px; color:#333; margin-bottom: 8px; white-space: pre-line;">${c.text}</div>
+            <div style="display:flex; gap:10px; font-size:12px;">
+              <button onclick="likeQtComment(${index}, 'like')" 
+                      style="border:1px solid ${isLiked ? '#2196F3' : '#ddd'}; background:${isLiked ? '#e3f2fd' : '#fff'}; color:${isLiked ? '#1976D2' : '#333'}; border-radius:12px; padding:2px 8px; cursor:pointer;">
+                👍 좋아요 ${c.likes || 0}
+              </button>
+              <button onclick="likeQtComment(${index}, 'heart')" 
+                      style="border:1px solid ${isHearted ? '#e91e63' : '#ddd'}; background:${isHearted ? '#fce4ec' : '#fff'}; color:${isHearted ? '#c2185b' : '#333'}; border-radius:12px; padding:2px 8px; cursor:pointer;">
+                ❤️ 하트 ${c.hearts || 0}
+              </button>
+            </div>
           </div>
-          ${deleteBtn}
-        </div>
-        <div style="font-size:14px; color:#333; margin-bottom: 8px; white-space: pre-line;">${c.text}</div>
-        <div style="display:flex; gap:10px; font-size:12px;">
-          <button onclick="likeQtComment(${index}, 'like')" 
-                  style="border:1px solid ${isLiked ? '#2196F3' : '#ddd'}; background:${isLiked ? '#e3f2fd' : '#fff'}; color:${isLiked ? '#1976D2' : '#333'}; border-radius:12px; padding:2px 8px; cursor:pointer;">
-            👍 좋아요 ${c.likes || 0}
-          </button>
-          <button onclick="likeQtComment(${index}, 'heart')" 
-                  style="border:1px solid ${isHearted ? '#e91e63' : '#ddd'}; background:${isHearted ? '#fce4ec' : '#fff'}; color:${isHearted ? '#c2185b' : '#333'}; border-radius:12px; padding:2px 8px; cursor:pointer;">
-            ❤️ 하트 ${c.hearts || 0}
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
+        `;
+      }).join('');
+    }
 
-// 2. 기도/감사제목 작성 함수
-function submitQtComment() {
-  if (typeof isLoggedIn !== 'undefined' && !isLoggedIn) {
-    alert("기도 및 감사제목을 남기시려면 동문회 로그인이 필요합니다.");
-    if (typeof openModal === 'function') openModal('loginModal');
-    return;
-  }
+    function submitQtComment() {
+      if (typeof isLoggedIn !== 'undefined' && !isLoggedIn) {
+        alert("기도 및 감사제목을 남기시려면 동문회 로그인이 필요합니다.");
+        if (typeof openModal === 'function') openModal('loginModal');
+        return;
+      }
 
-  const nameInput = document.getElementById('commentAuthor') || document.getElementById('qtCommentName');
-  const textInput = document.getElementById('commentText') || document.getElementById('qtCommentInput');
+      const nameInput = document.getElementById('commentAuthor') || document.getElementById('qtCommentName');
+      const textInput = document.getElementById('commentText') || document.getElementById('qtCommentInput');
 
-  const author = nameInput ? nameInput.value.trim() : '동문';
-  const text = textInput ? textInput.value.trim() : '';
+      const author = nameInput ? nameInput.value.trim() : '동문';
+      const text = textInput ? textInput.value.trim() : '';
 
-  if (!text) {
-    alert("내용을 입력해 주세요.");
-    return;
-  }
+      if (!text) {
+        alert("내용을 입력해 주세요.");
+        return;
+      }
 
-  qtCommentsDatabase = JSON.parse(localStorage.getItem('qtCommentsDatabase')) || {};
+      qtCommentsDatabase = JSON.parse(localStorage.getItem('qtCommentsDatabase')) || {};
 
-  if (!qtCommentsDatabase[selectedQtDate]) {
-    qtCommentsDatabase[selectedQtDate] = [];
-  }
+      if (!qtCommentsDatabase[selectedQtDate]) {
+        qtCommentsDatabase[selectedQtDate] = [];
+      }
 
-  const now = new Date();
-  const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const now = new Date();
+      const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-  qtCommentsDatabase[selectedQtDate].push({
-    id: 'cmt_' + selectedQtDate + '_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-    author: author || '익명 동문',
-    text: text,
-    time: timeStr,
-    likes: 0,
-    hearts: 0
-  });
+      qtCommentsDatabase[selectedQtDate].push({
+        id: 'cmt_' + selectedQtDate + '_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+        author: author || '익명 동문',
+        text: text,
+        time: timeStr,
+        likes: 0,
+        hearts: 0
+      });
 
-  localStorage.setItem('qtCommentsDatabase', JSON.stringify(qtCommentsDatabase));
+      localStorage.setItem('qtCommentsDatabase', JSON.stringify(qtCommentsDatabase));
 
-  if (textInput) textInput.value = '';
-  if (nameInput && nameInput.tagName === 'INPUT') nameInput.value = '';
+      if (textInput) textInput.value = '';
+      if (nameInput && nameInput.tagName === 'INPUT') nameInput.value = '';
 
-  renderQtComments();
-}
+      renderQtComments();
+    }
 
-function addQtComment() {
-  submitQtComment();
-}
+    function addQtComment() {
+      submitQtComment();
+    }
 
-// 3. 좋아요 / 하트 클릭 처리 함수
-function likeQtComment(index, type) {
-  qtCommentsDatabase = JSON.parse(localStorage.getItem('qtCommentsDatabase')) || {};
-  
-  const target = qtCommentsDatabase[selectedQtDate]?.[index];
-  if (!target) return;
+    function likeQtComment(index, type) {
+      qtCommentsDatabase = JSON.parse(localStorage.getItem('qtCommentsDatabase')) || {};
+      
+      const target = qtCommentsDatabase[selectedQtDate]?.[index];
+      if (!target) return;
 
-  if (!target.id) {
-    target.id = 'cmt_' + selectedQtDate + '_' + index;
-  }
+      if (!target.id) {
+        target.id = 'cmt_' + selectedQtDate + '_' + index;
+      }
 
-  let myLikedComments = JSON.parse(localStorage.getItem('myLikedComments')) || [];
-  const key = `${target.id}_${type}`;
+      let myLikedComments = JSON.parse(localStorage.getItem('myLikedComments')) || [];
+      const key = `${target.id}_${type}`;
 
-  if (myLikedComments.includes(key)) {
-    alert("이미 공감을 표시하셨습니다.");
-    return;
-  }
+      if (myLikedComments.includes(key)) {
+        alert("이미 공감을 표시하셨습니다.");
+        return;
+      }
 
-  if (type === 'like') target.likes = (target.likes || 0) + 1;
-  if (type === 'heart') target.hearts = (target.hearts || 0) + 1;
+      if (type === 'like') target.likes = (target.likes || 0) + 1;
+      if (type === 'heart') target.hearts = (target.hearts || 0) + 1;
 
-  myLikedComments.push(key);
+      myLikedComments.push(key);
 
-  localStorage.setItem('myLikedComments', JSON.stringify(myLikedComments));
-  localStorage.setItem('qtCommentsDatabase', JSON.stringify(qtCommentsDatabase));
-  renderQtComments();
-}
-
-// 4. 관리자 전용 댓글 삭제 함수
-function deleteQtComment(index) {
-  if (typeof isAdmin !== 'undefined' && !isAdmin) {
-    alert("관리자 권한이 필요합니다.");
-    return;
-  }
-
-  if (confirm("이 댓글/기도제목을 삭제하시겠습니까?")) {
-    qtCommentsDatabase = JSON.parse(localStorage.getItem('qtCommentsDatabase')) || {};
-    if (qtCommentsDatabase[selectedQtDate]) {
-      qtCommentsDatabase[selectedQtDate].splice(index, 1);
+      localStorage.setItem('myLikedComments', JSON.stringify(myLikedComments));
       localStorage.setItem('qtCommentsDatabase', JSON.stringify(qtCommentsDatabase));
       renderQtComments();
     }
-  }
-}
 
-// 5. QT 내용 수정 함수
-function updateQT() {
-  const titleEl = document.getElementById('qtTitleInput');
-  const bibleEl = document.getElementById('qtBibleInput');
-  const bodyEl = document.getElementById('qtBodyInput');
+    function deleteQtComment(index) {
+      if (typeof isAdmin !== 'undefined' && !isAdmin) {
+        alert("관리자 권한이 필요합니다.");
+        return;
+      }
 
-  if (!titleEl || !bodyEl) return alert("QT 입력 항목을 찾을 수 없습니다.");
+      if (confirm("이 댓글/기도제목을 삭제하시겠습니까?")) {
+        qtCommentsDatabase = JSON.parse(localStorage.getItem('qtCommentsDatabase')) || {};
+        if (qtCommentsDatabase[selectedQtDate]) {
+          qtCommentsDatabase[selectedQtDate].splice(index, 1);
+          localStorage.setItem('qtCommentsDatabase', JSON.stringify(qtCommentsDatabase));
+          renderQtComments();
+        }
+      }
+    }
 
-  const title = titleEl.value;
-  const bible = bibleEl ? bibleEl.value : '';
-  const body = bodyEl.value;
+    function updateQT() {
+      const titleEl = document.getElementById('qtTitleInput');
+      const bibleEl = document.getElementById('qtBibleInput');
+      const bodyEl = document.getElementById('qtBodyInput');
 
-  if (!title || !body) return alert("QT 제목과 본문 내용을 입력해주세요.");
+      if (!titleEl || !bodyEl) return alert("QT 입력 항목을 찾을 수 없습니다.");
 
-  let savedQtDb = JSON.parse(localStorage.getItem('qtDatabase')) || (typeof qtDatabase !== 'undefined' ? qtDatabase : {});
+      const title = titleEl.value;
+      const bible = bibleEl ? bibleEl.value : '';
+      const body = bodyEl.value;
 
-  savedQtDb[selectedQtDate] = { title, bible, body };
-  localStorage.setItem('qtDatabase', JSON.stringify(savedQtDb));
+      if (!title || !body) return alert("QT 제목과 본문 내용을 입력해주세요.");
 
-  alert(`${selectedQtDate} 날짜의 QT 말씀이 성공적으로 수정되었습니다.`);
-  renderQt();
-}
+      let savedQtDb = JSON.parse(localStorage.getItem('qtDatabase')) || (typeof qtDatabase !== 'undefined' ? qtDatabase : {});
 
-    // 9. 계정 및 로그인
+      savedQtDb[selectedQtDate] = { title, bible, body };
+      localStorage.setItem('qtDatabase', JSON.stringify(savedQtDb));
+
+      alert(`${selectedQtDate} 날짜의 QT 말씀이 성공적으로 수정되었습니다.`);
+      renderQt();
+    }
+
+    // 9. 로그인 / 로그아웃
     function handleLogin() {
       const id = document.getElementById('loginId').value;
       if(!id) return alert("아이디를 입력해 주세요.");
@@ -1112,6 +1145,7 @@ function updateQT() {
       alert("로그인되었습니다.");
       closeModal('loginModal');
       updateAuthUI();
+      renderAll();
     }
 
     function handleLogout() {
@@ -1124,6 +1158,7 @@ function updateQT() {
 
     function updateAuthUI() {
       const authBtn = document.getElementById('authBtn');
+      if(!authBtn) return;
       if(isLoggedIn) {
         authBtn.textContent = translations[currentLang].logout;
         authBtn.onclick = handleLogout;
@@ -1138,7 +1173,7 @@ function updateQT() {
       document.getElementById('signupForm').style.display = type === 'signup' ? 'block' : 'none';
     }
 
-    // 10. 히어로 동영상 재생/음소거 제어
+    // 10. 히어로 동영상 소리 제어
     function toggleHeroSound() {
       const video = document.getElementById('heroVideo');
       const btn = document.getElementById('heroAudioButton');
@@ -1147,505 +1182,186 @@ function updateQT() {
       if(video.paused) {
         video.play().then(() => {
           video.muted = false;
-          btn.textContent = currentLang === 'ko' ? '🔊 소리 끄기' : '🔊 Mute';
+          if(btn) btn.textContent = currentLang === 'ko' ? '🔊 소리 끄기' : '🔊 Mute';
         });
       } else if(video.muted) {
         video.muted = false;
-        btn.textContent = currentLang === 'ko' ? '🔊 소리 끄기' : '🔊 Mute';
+        if(btn) btn.textContent = currentLang === 'ko' ? '🔊 소리 끄기' : '🔊 Mute';
       } else {
         video.muted = true;
-        btn.textContent = currentLang === 'ko' ? '▶ 영상 재생 / 소리 켜기' : '▶ Play / Unmute';
+        if(btn) btn.textContent = currentLang === 'ko' ? '▶ 영상 재생 / 소리 켜기' : '▶ Play / Unmute';
       }
     }
 
-    // 초기 실행
+    // 11. 후원 시스템 관련
+    const DEFAULT_THANKS_MSG = "하나님이 모든 은혜를 너희에게 넘치게 하실 수 있나니\n이는 너희로 모든 일에 항상 모든 것이 넉넉하여 모든 착한 일을 넘치게 하게 하려 하심이라\n(고린도후서 9:8)\n\n보내주신 귀한 후원금은 동문회 발전과 후배들을 위해 귀하게 사용하겠습니다.";
+
+    function openDonationModal() {
+      const modal = document.getElementById('donationModal');
+      if (modal) {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        resetDonationForm();
+        loadDonationConfig();
+      } else {
+        alert("donationModal 요소를 찾을 수 없습니다.");
+      }
+    }
+
+    function closeDonationModal() {
+      const modal = document.getElementById('donationModal');
+      if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+      }
+    }
+
+    function copyAccountNo(accountNo) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(accountNo).then(() => {
+          alert("계좌번호(" + accountNo + ")가 복사되었습니다.");
+        }).catch(() => {
+          alert("계좌번호: " + accountNo);
+        });
+      } else {
+        alert("계좌번호: " + accountNo);
+      }
+    }
+
+    function loadDonationConfig() {
+      const thanksMsg = localStorage.getItem('donationThanksMsg') || localStorage.getItem('donationVerse') || DEFAULT_THANKS_MSG;
+      
+      const displayArea = document.getElementById('displayThanksMessage');
+      if (displayArea) displayArea.innerText = thanksMsg;
+
+      const verseEl = document.getElementById('donationBibleVerse');
+      if (verseEl) verseEl.textContent = thanksMsg;
+
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      const isUserAdmin = (typeof isAdmin !== 'undefined' && isAdmin) || 
+                          currentUser.isAdmin === true || 
+                          currentUser.role === 'admin' || 
+                          localStorage.getItem('isAdmin') === 'true' || 
+                          sessionStorage.getItem('isAdmin') === 'true';
+
+      const adminPanel = document.getElementById('adminDonationPanel') || document.getElementById('adminDonationConfig');
+      const adminDonorList = document.getElementById('adminDonorListArea');
+
+      if (adminPanel) adminPanel.style.display = isUserAdmin ? 'block' : 'none';
+      if (adminDonorList) adminDonorList.style.display = isUserAdmin ? 'block' : 'none';
+
+      if (isUserAdmin) {
+        const adminInput = document.getElementById('adminThanksInput') || document.getElementById('adminVerseInput');
+        if (adminInput) adminInput.value = thanksMsg;
+        renderDonationRecords();
+      }
+    }
+
+    function submitDonation() {
+      const nameInput = document.getElementById('donorName');
+      const phoneInput = document.getElementById('donorPhone');
+      const amountInput = document.getElementById('donationAmount') || document.getElementById('donorAmount');
+      const messageInput = document.getElementById('donorMessage');
+
+      const name = nameInput ? nameInput.value.trim() : '익명';
+      const phone = phoneInput ? phoneInput.value.trim() : '-';
+      const amount = amountInput ? amountInput.value.trim() : '';
+      const message = messageInput ? messageInput.value.trim() : '';
+
+      if (!amount) {
+        alert("후원 금액을 입력해 주세요.");
+        return;
+      }
+
+      const newRecord = {
+        id: Date.now(),
+        date: new Date().toLocaleDateString(),
+        name: name,
+        phone: phone,
+        amount: amount,
+        message: message
+      };
+
+      const records = JSON.parse(localStorage.getItem('donationRecords') || localStorage.getItem('donorList') || '[]');
+      records.unshift(newRecord);
+      localStorage.setItem('donationRecords', JSON.stringify(records));
+
+      const formArea = document.getElementById('donationFormArea');
+      const successArea = document.getElementById('donationSuccessArea');
+
+      if (formArea && successArea) {
+        formArea.style.display = 'none';
+        successArea.style.display = 'block';
+      } else {
+        alert("후원 신청이 완료되었습니다! 따뜻한 후원에 감사드립니다.");
+      }
+
+      loadDonationConfig();
+    }
+
+    function saveDonationVerse() {
+      const adminInput = document.getElementById('adminThanksInput') || document.getElementById('adminVerseInput');
+      const newMsg = adminInput ? adminInput.value.trim() : '';
+      if (!newMsg) {
+        alert("성경 말씀 및 감사 문구를 입력해 주세요.");
+        return;
+      }
+      localStorage.setItem('donationThanksMsg', newMsg);
+      localStorage.setItem('donationVerse', newMsg);
+      alert("성경 말씀 구절 및 감사 문구가 성공적으로 변경되었습니다.");
+      loadDonationConfig();
+    }
+
+    function renderDonationRecords() {
+      const listContainer = document.getElementById('donationRecordList') || document.getElementById('donorListTable');
+      if (!listContainer) return;
+
+      const records = JSON.parse(localStorage.getItem('donationRecords') || localStorage.getItem('donorList') || '[]');
+      if (records.length === 0) {
+        listContainer.innerHTML = '<p style="color: #888; font-size: 12px; margin: 5px 0;">등록된 후원 내역이 없습니다.</p>';
+        return;
+      }
+
+      let html = '<ul style="list-style: none; padding: 0; margin: 0; font-size: 12px;">';
+      records.forEach(rec => {
+        html += `
+          <li style="border-bottom: 1px solid #eee; padding: 6px 0; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong>${rec.name || '익명'}</strong> (${rec.amount}원) - ${rec.phone || '-'}<br>
+              <span style="color: #666; font-size: 11px;">[${rec.date}] ${rec.message ? '| ' + rec.message : ''}</span>
+            </div>
+            <button onclick="deleteDonationRecord(${rec.id})" style="background: #ff4d4f; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;">삭제</button>
+          </li>
+        `;
+      });
+      html += '</ul>';
+      listContainer.innerHTML = html;
+    }
+
+    function deleteDonationRecord(recordId) {
+      if (!confirm("해당 후원 내역을 삭제하시겠습니까?")) return;
+      let records = JSON.parse(localStorage.getItem('donationRecords') || localStorage.getItem('donorList') || '[]');
+      records = records.filter(r => r.id !== recordId);
+      localStorage.setItem('donationRecords', JSON.stringify(records));
+      localStorage.setItem('donorList', JSON.stringify(records));
+      renderDonationRecords();
+    }
+
+    function resetDonationForm() {
+      if (document.getElementById('donorName')) document.getElementById('donorName').value = '';
+      if (document.getElementById('donorPhone')) document.getElementById('donorPhone').value = '';
+      if (document.getElementById('donationAmount')) document.getElementById('donationAmount').value = '';
+      if (document.getElementById('donorAmount')) document.getElementById('donorAmount').value = '';
+      if (document.getElementById('donorMessage')) document.getElementById('donorMessage').value = '';
+
+      if (document.getElementById('donationFormArea')) document.getElementById('donationFormArea').style.display = 'block';
+      if (document.getElementById('donationSuccessArea')) document.getElementById('donationSuccessArea').style.display = 'none';
+    }
+
+    // 페이지 로드 완료 시 실행
     window.addEventListener('DOMContentLoaded', () => {
       renderAll();
     });
-    // ==========================================
-// ==========================================
-// 후원 모달 제어 및 시스템 스크립트
-// ==========================================
-
-// 기본 성경 말씀 및 감사 문구
-const DEFAULT_THANKS_MSG = "하나님이 모든 은혜를 너희에게 넘치게 하실 수 있나니\n이는 너희로 모든 일에 항상 모든 것이 넉넉하여 모든 착한 일을 넘치게 하게 하려 하심이라\n(고린도후서 9:8)\n\n보내주신 귀한 후원금은 동문회 발전과 후배들을 위해 귀하게 사용하겠습니다.";
-
-// 후원 모달 열기 및 닫기
-function openDonationModal() {
-  const modal = document.getElementById('donationModal');
-  if (modal) {
-    modal.style.display = 'block';
-    resetDonationForm();
-    loadDonationConfig();
-  } else {
-    alert("donationModal 요소를 찾을 수 없습니다.");
-  }
-}
-
-function closeDonationModal() {
-  const modal = document.getElementById('donationModal');
-  if (modal) modal.style.display = 'none';
-}
-
-// 기존 openModal 함수 호환 연동
-const origOpenModal = window.openModal;
-window.openModal = function(id) {
-  if (id === 'donationModal') {
-    openDonationModal();
-  } else if (typeof origOpenModal === 'function') {
-    origOpenModal(id);
-  } else {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'block';
-  }
-};
-
-// 계좌번호 복사 기능
-function copyAccountNo(accountNo) {
-  navigator.clipboard.writeText(accountNo).then(() => {
-    alert("계좌번호(" + accountNo + ")가 복사되었습니다.");
-  }).catch(() => {
-    alert("계좌번호: " + accountNo);
-  });
-}
-
-// 후원 설정 및 데이터 로드 (관리자 체크 포함)
-function loadDonationConfig() {
-  const thanksMsg = localStorage.getItem('donationThanksMsg') || localStorage.getItem('donationVerse') || DEFAULT_THANKS_MSG;
-  
-  // 감사 메시지/성경 구절 표기
-  const displayArea = document.getElementById('displayThanksMessage');
-  if (displayArea) displayArea.innerText = thanksMsg;
-
-  const verseEl = document.getElementById('donationBibleVerse');
-  if (verseEl) verseEl.textContent = thanksMsg;
-
-  // 관리자 권한 체크
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-  const isUserAdmin = (typeof isAdmin !== 'undefined' && isAdmin) || 
-                      currentUser.isAdmin === true || 
-                      currentUser.role === 'admin' || 
-                      localStorage.getItem('isAdmin') === 'true' || 
-                      sessionStorage.getItem('isAdmin') === 'true';
-
-  // 관리자 패널 제어
-  const adminPanel = document.getElementById('adminDonationPanel') || document.getElementById('adminDonationConfig');
-  const adminDonorList = document.getElementById('adminDonorListArea');
-
-  if (adminPanel) adminPanel.style.display = isUserAdmin ? 'block' : 'none';
-  if (adminDonorList) adminDonorList.style.display = isUserAdmin ? 'block' : 'none';
-
-  if (isUserAdmin) {
-    const adminInput = document.getElementById('adminThanksInput') || document.getElementById('adminVerseInput');
-    if (adminInput) adminInput.value = thanksMsg;
-    renderDonationRecords();
-  }
-}
-
-// 후원 신청 제출 (후원자 정보 수집 & 감사 화면 전환)
-function submitDonation() {
-  const nameInput = document.getElementById('donorName');
-  const phoneInput = document.getElementById('donorPhone');
-  const amountInput = document.getElementById('donationAmount') || document.getElementById('donorAmount');
-  const messageInput = document.getElementById('donorMessage');
-
-  const name = nameInput ? nameInput.value.trim() : '익명';
-  const phone = phoneInput ? phoneInput.value.trim() : '-';
-  const amount = amountInput ? amountInput.value.trim() : '';
-  const message = messageInput ? messageInput.value.trim() : '';
-
-  if (!amount) {
-    alert("후원 금액을 입력해 주세요.");
-    return;
-  }
-
-  // 후원자 정보 저장
-  const newRecord = {
-    id: Date.now(),
-    date: new Date().toLocaleDateString(),
-    name: name,
-    phone: phone,
-    amount: amount,
-    message: message
-  };
-
-  const records = JSON.parse(localStorage.getItem('donationRecords') || localStorage.getItem('donorList') || '[]');
-  records.unshift(newRecord);
-  localStorage.setItem('donationRecords', JSON.stringify(records));
-
-  // 후원 입력 영역을 숨기고 감사 문구 영역 노출
-  const formArea = document.getElementById('donationFormArea');
-  const successArea = document.getElementById('donationSuccessArea');
-
-  if (formArea && successArea) {
-    formArea.style.display = 'none';
-    successArea.style.display = 'block';
-  } else {
-    alert("후원 신청이 완료되었습니다! 따뜻한 후원에 감사드립니다.");
-  }
-
-  loadDonationConfig();
-}
-
-// 관리자 말씀 구절 & 감사 문구 저장
-function saveDonationVerse() {
-  const adminInput = document.getElementById('adminThanksInput') || document.getElementById('adminVerseInput');
-  const newMsg = adminInput ? adminInput.value.trim() : '';
-  if (!newMsg) {
-    alert("성경 말씀 및 감사 문구를 입력해 주세요.");
-    return;
-  }
-  localStorage.setItem('donationThanksMsg', newMsg);
-  localStorage.setItem('donationVerse', newMsg);
-  alert("성경 말씀 구절 및 감사 문구가 성공적으로 변경되었습니다.");
-  loadDonationConfig();
-}
-
-// 관리자 후원 내역 출력
-function renderDonationRecords() {
-  const listContainer = document.getElementById('donationRecordList') || document.getElementById('donorListTable');
-  if (!listContainer) return;
-
-  const records = JSON.parse(localStorage.getItem('donationRecords') || localStorage.getItem('donorList') || '[]');
-  if (records.length === 0) {
-    listContainer.innerHTML = '<p style="color: #888; font-size: 12px; margin: 5px 0;">등록된 후원 내역이 없습니다.</p>';
-    return;
-  }
-
-  let html = '<ul style="list-style: none; padding: 0; margin: 0; font-size: 12px;">';
-  records.forEach(rec => {
-    html += `
-      <li style="border-bottom: 1px solid #eee; padding: 6px 0; display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <strong>${rec.name || '익명'}</strong> (${rec.amount}원) - ${rec.phone || '-'}<br>
-          <span style="color: #666; font-size: 11px;">[${rec.date}] ${rec.message ? '| ' + rec.message : ''}</span>
-        </div>
-        <button onclick="deleteDonationRecord(${rec.id})" style="background: #ff4d4f; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;">삭제</button>
-      </li>
-    `;
-  });
-  html += '</ul>';
-  listContainer.innerHTML = html;
-}
-
-function deleteDonationRecord(recordId) {
-  if (!confirm("해당 후원 내역을 삭제하시겠습니까?")) return;
-  let records = JSON.parse(localStorage.getItem('donationRecords') || localStorage.getItem('donorList') || '[]');
-  records = records.filter(r => r.id !== recordId);
-  localStorage.setItem('donationRecords', JSON.stringify(records));
-  localStorage.setItem('donorList', JSON.stringify(records));
-  renderDonationRecords();
-}
-
-// 후원 폼 초기화
-function resetDonationForm() {
-  if (document.getElementById('donorName')) document.getElementById('donorName').value = '';
-  if (document.getElementById('donorPhone')) document.getElementById('donorPhone').value = '';
-  if (document.getElementById('donationAmount')) document.getElementById('donationAmount').value = '';
-  if (document.getElementById('donorAmount')) document.getElementById('donorAmount').value = '';
-  if (document.getElementById('donorMessage')) document.getElementById('donorMessage').value = '';
-
-  if (document.getElementById('donationFormArea')) document.getElementById('donationFormArea').style.display = 'block';
-  if (document.getElementById('donationSuccessArea')) document.getElementById('donationSuccessArea').style.display = 'none';
-}
-
-// 소개글 관리자 UI 처리
-function updateAboutAdminUI() {
-  const adminForm = document.getElementById('adminAboutForm');
-  const textElement = document.getElementById('aboutContentText');
-  const textInput = document.getElementById('aboutTextInput');
-
-  const savedAbout = localStorage.getItem('aboutText');
-  if (savedAbout && textElement) textElement.innerText = savedAbout;
-
-  if (!adminForm) return;
-
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-  const isAdmin = currentUser.isAdmin === true || 
-                  currentUser.role === 'admin' || 
-                  localStorage.getItem('isAdmin') === 'true' || 
-                  sessionStorage.getItem('isAdmin') === 'true';
-
-  if (isAdmin) {
-    adminForm.style.display = 'block';
-    if (textInput && textElement) textInput.value = textElement.innerText;
-  } else {
-    adminForm.style.display = 'none';
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  loadDonationConfig();
-  updateAboutAdminUI();
-});
-
-// 1. 동문회 소개 및 관리자 권한 제어
-function updateAboutAdminUI() {
-    const adminForm = document.getElementById('adminAboutForm');
-    const noticeForm = document.getElementById('adminNoticeForm');
-    const textElement = document.getElementById('aboutContentText');
-    const textInput = document.getElementById('aboutTextInput');
-
-    // 저장된 소개글 불러오기
-    const savedAbout = localStorage.getItem('aboutText');
-    if (savedAbout && textElement) {
-        textElement.innerText = savedAbout;
-    }
-
-    if (!adminForm) return;
-
-    // 공지사항 폼이 보이고 있거나 로그인 정보가 관리자인지 체크
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    const isNoticeFormVisible = noticeForm && (noticeForm.style.display === 'block' || noticeForm.style.display === '');
-    
-    const isAdmin = isNoticeFormVisible || 
-                    currentUser.isAdmin === true || 
-                    currentUser.role === 'admin' || 
-                    localStorage.getItem('isAdmin') === 'true' || 
-                    sessionStorage.getItem('isAdmin') === 'true';
-
-    if (isAdmin) {
-        adminForm.style.setProperty('display', 'block', 'important');
-        if (textInput && textElement && (!textInput.value || textInput.value === '')) {
-            textInput.value = textElement.innerText;
-        }
-    } else {
-        adminForm.style.setProperty('display', 'none', 'important');
-    }
-}
-
-// 2. 소개글 저장 기능
-function saveAboutText() {
-    const textInput = document.getElementById('aboutTextInput');
-    const textElement = document.getElementById('aboutContentText');
-    
-    if (!textInput || !textInput.value.trim()) {
-        alert("내용을 입력해 주세요.");
-        return;
-    }
-    
-    const newText = textInput.value.trim();
-    localStorage.setItem('aboutText', newText);
-    
-    if (textElement) {
-        textElement.innerText = newText;
-    }
-    alert("동문회 소개글이 성공적으로 수정되었습니다!");
-}
-
-// 3. 실시간 감지 및 로드
-setInterval(updateAboutAdminUI, 500);
-document.addEventListener('DOMContentLoaded', updateAboutAdminUI);
-// --- 연도별 갤러리 & 이미지 최적화 로직 ---
-let currentSelectedYear = 'ALL';
-
-// 1. 이미지 업로드 시 브라우저용 용량 자동 압축 (가로 해상도 최대 1000px 조절)
-function compressImage(file, maxWidth, quality) {
-    return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-
-                if (width > maxWidth) {
-                    height = Math.round((height * maxWidth) / width);
-                    width = maxWidth;
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                
-                // 압축된 base64 반환
-                resolve(canvas.toDataURL('image/jpeg', quality));
-            };
-        };
-    });
-}
-
-// 2. 활동 사진 다중 업로드 처리
-async function uploadGalleryImages() {
-    const year = document.getElementById('galleryYearInput').value;
-    const title = document.getElementById('galleryTitleInput').value.trim() || `${year}년 활동 사진`;
-    const fileInput = document.getElementById('galleryImageInput');
-    const files = fileInput.files;
-
-    if (!files || files.length === 0) {
-        alert("업로드할 사진을 선택해 주세요.");
-        return;
-    }
-
-    let galleryItems = JSON.parse(localStorage.getItem('galleryItems') || '[]');
-
-    for (let i = 0; i < files.length; i++) {
-        // 이미지를 1000px 해상도로 자동 압축하여 용량 절약 (무제한급 축소)
-        const compressedDataUrl = await compressImage(files[i], 1000, 0.7);
-        galleryItems.unshift({
-            id: Date.now() + i,
-            year: year,
-            title: title,
-            imageUrl: compressedDataUrl,
-            date: new Date().toLocaleDateString()
-        });
-    }
-
-    try {
-        localStorage.setItem('galleryItems', JSON.stringify(galleryItems));
-        alert(`${files.length}장의 사진이 연도별 갤러리에 성공적으로 등록되었습니다!`);
-        fileInput.value = '';
-        document.getElementById('galleryTitleInput').value = '';
-        renderGallery();
-    } catch (e) {
-        alert("브라우저 저장 용량이 모두 찼습니다. 기존 사진을 일부 삭제 후 다시 시도해 주세요.");
-    }
-}
-
-// 3. 연도 탭 클릭 시 필터링
-function filterGalleryByYear(year) {
-    currentSelectedYear = year;
-    const buttons = document.querySelectorAll('.year-tab-btn');
-    buttons.forEach(btn => {
-        if (btn.innerText.includes(year) || (year === 'ALL' && btn.innerText === '전체보기')) {
-            btn.style.backgroundColor = '#004d2c';
-            btn.style.color = '#fff';
-        } else {
-            btn.style.backgroundColor = '#fff';
-            btn.style.color = '#004d2c';
-        }
-    });
-    renderGallery();
-}
-
-// 4. 갤러리 화면 출력 및 삭제 기능
-function renderGallery() {
-    const grid = document.getElementById('galleryGrid');
-    const adminForm = document.getElementById('adminGalleryForm');
-    if (!grid) return;
-
-    // 관리자 로그인 체크하여 등록 폼 노출 여부 결정
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    const noticeForm = document.getElementById('adminNoticeForm');
-    const isNoticeVisible = noticeForm && (noticeForm.style.display === 'block' || noticeForm.style.display === '');
-    const isAdmin = isNoticeVisible || currentUser.isAdmin === true || currentUser.role === 'admin' || localStorage.getItem('isAdmin') === 'true';
-
-    if (adminForm) {
-        adminForm.style.display = isAdmin ? 'block' : 'none';
-    }
-
-    const galleryItems = JSON.parse(localStorage.getItem('galleryItems') || '[]');
-    const filteredItems = currentSelectedYear === 'ALL' 
-        ? galleryItems 
-        : galleryItems.filter(item => item.year === currentSelectedYear);
-
-    if (filteredItems.length === 0) {
-        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px 0;">등록된 활동 사진이 없습니다.</p>';
-        return;
-    }
-
-    grid.innerHTML = filteredItems.map(item => `
-        <div style="border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative;">
-            <img src="${item.imageUrl}" alt="${item.title}" style="width: 100%; height: 160px; object-fit: cover; display: block;">
-            <div style="padding: 10px;">
-                <span style="font-size: 11px; background: #e8f5e9; color: #004d2c; padding: 2px 6px; border-radius: 4px; font-weight: bold;">${item.year}년</span>
-                <p style="margin: 5px 0 0 0; font-size: 14px; font-weight: bold; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.title}</p>
-            </div>
-            ${isAdmin ? `<button onclick="deleteGalleryItem(${item.id})" style="position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.7); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer;">&times;</button>` : ''}
-        </div>
-    `).join('');
-}
-
-// 5. 사진 삭제 기능 (관리자 전용)
-function deleteGalleryItem(id) {
-    if (!confirm("이 활동 사진을 삭제하시겠습니까?")) return;
-    let galleryItems = JSON.parse(localStorage.getItem('galleryItems') || '[]');
-    galleryItems = galleryItems.filter(item => item.id !== id);
-    localStorage.setItem('galleryItems', JSON.stringify(galleryItems));
-    renderGallery();
-}
-// --- 로그인 체크 및 모달 제어 기능 ---
-function openModal(modalId) {
-    // 1. 현재 로그인 유저 상태 확인
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-    const isLoggedIn = currentUser !== null || localStorage.getItem('isLoggedIn') === 'true';
-
-    // 2. 동문회 지난활동(galleryModal) 접근 시 로그인 검사
-    if (modalId === 'galleryModal' && !isLoggedIn) {
-        alert("동문회 지난활동은 로그인 후 이용하실 수 있습니다.");
-        
-        // 로그인 모달 열어주기
-        const loginModal = document.getElementById('loginModal');
-        if (loginModal) {
-            loginModal.style.display = 'block';
-        }
-        return; // 갤러리 모달 열기 중단
-    }
-
-    // 3. 로그인 되었거나 일반 모달은 정상 오픈
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.style.display = 'block';
-        if (modalId === 'galleryModal' && typeof renderGallery === 'function') {
-            renderGallery();
-        }
-    }
-}
-
-// --- 로그인 회원 전용 갤러리 출력 ---
-function renderGallery() {
-    const grid = document.getElementById('galleryGrid');
-    const adminForm = document.getElementById('adminGalleryForm');
-    if (!grid) return;
-
-    // 로그인 여부 확인
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-    const isLoggedIn = currentUser !== null || localStorage.getItem('isLoggedIn') === 'true';
-
-    // 비로그인 시 안내 문구 표기
-    if (!isLoggedIn) {
-        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #e53935; padding: 40px 0; font-weight: bold;">로그인 후 동문회 활동 사진을 확인하실 수 있습니다.</p>';
-        if (adminForm) adminForm.style.display = 'none';
-        return;
-    }
-
-    // 관리자 여부 확인
-    const noticeForm = document.getElementById('adminNoticeForm');
-    const isNoticeVisible = noticeForm && (noticeForm.style.display === 'block' || noticeForm.style.display === '');
-    const isAdmin = isNoticeVisible || (currentUser && (currentUser.isAdmin === true || currentUser.role === 'admin')) || localStorage.getItem('isAdmin') === 'true';
-
-    if (adminForm) {
-        adminForm.style.display = isAdmin ? 'block' : 'none';
-    }
-
-    const galleryItems = JSON.parse(localStorage.getItem('galleryItems') || '[]');
-    const filteredItems = currentSelectedYear === 'ALL' 
-        ? galleryItems 
-        : galleryItems.filter(item => item.year === currentSelectedYear);
-
-    if (filteredItems.length === 0) {
-        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px 0;">등록된 활동 사진이 없습니다.</p>';
-        return;
-    }
-
-    grid.innerHTML = filteredItems.map(item => `
-        <div style="border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; display: flex; flex-direction: column;">
-            <img src="${item.imageUrl}" alt="${item.title}" style="width: 100%; height: 160px; object-fit: cover; display: block;">
-            <div style="padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                <div>
-                    <span style="font-size: 11px; background: #e8f5e9; color: #004d2c; padding: 2px 6px; border-radius: 4px; font-weight: bold;">${item.year}년</span>
-                    <p style="margin: 6px 0 4px 0; font-size: 14px; font-weight: bold; color: #333;">${item.title}</p>
-                    ${item.desc ? `<p style="margin: 0; font-size: 12px; color: #666; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${item.desc}</p>` : ''}
-                </div>
-            </div>
-            ${isAdmin ? `<button onclick="deleteGalleryItem(${item.id})" style="position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.7); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer;">&times;</button>` : ''}
-        </div>
-    `).join('');
-}
 </script>
 </body>
 </html>
