@@ -487,6 +487,309 @@
 
   <!-- ==================== 자바스크립트 로직 ==================== -->
   <script>
+    // ==========================================
+// 후원 모달 제어 및 시스템 스크립트
+// ==========================================
+
+// 기본 성경 말씀 및 감사 문구
+const DEFAULT_THANKS_MSG = "하나님이 모든 은혜를 너희에게 넘치게 하실 수 있나니\n이는 너희로 모든 일에 항상 모든 것이 넉넉하여 모든 착한 일을 넘치게 하게 하려 하심이라\n(고린도후서 9:8)\n\n보내주신 귀한 후원금은 동문회 발전과 후배들을 위해 귀하게 사용하겠습니다.";
+
+// 후원 모달 열기 및 닫기
+function openDonationModal() {
+  const modal = document.getElementById('donationModal');
+  if (modal) {
+    modal.style.display = 'block';
+    resetDonationForm();
+    loadDonationConfig();
+  } else {
+    alert("donationModal 요소를 찾을 수 없습니다.");
+  }
+}
+
+function closeDonationModal() {
+  const modal = document.getElementById('donationModal');
+  if (modal) modal.style.display = 'none';
+}
+
+// 계좌번호 복사 기능
+function copyAccountNo(accountNo) {
+  navigator.clipboard.writeText(accountNo).then(() => {
+    alert("계좌번호가 복사되었습니다.");
+  }).catch(() => {
+    alert("계좌번호: " + accountNo);
+  });
+}
+
+// 화면 데이터 로드 함수
+function loadDonationConfig() {
+  const defaultBank = "🏦 토스뱅크 100270205705 (예금주: GTS동문회)";
+  const defaultContact = "📞 후원 문의: 동문회 총무 (010-0000-0000)";
+
+  const bankInfo = localStorage.getItem('donationBankInfo') || defaultBank;
+  const contactInfo = localStorage.getItem('donationContactInfo') || defaultContact;
+  const thanksMsg = localStorage.getItem('donationThanksMsg') || localStorage.getItem('donationVerse') || DEFAULT_THANKS_MSG;
+
+  if (document.getElementById('displayBankInfo')) document.getElementById('displayBankInfo').innerText = bankInfo;
+  if (document.getElementById('displayContactInfo')) document.getElementById('displayContactInfo').innerText = contactInfo;
+  if (document.getElementById('displayThanksMessage')) document.getElementById('displayThanksMessage').innerText = thanksMsg;
+  if (document.getElementById('donationBibleVerse')) document.getElementById('donationBibleVerse').innerText = thanksMsg;
+
+  // 관리자 권한 체크
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  const isUserAdmin = (typeof isAdmin !== 'undefined' && isAdmin) || 
+                      currentUser.isAdmin === true || 
+                      currentUser.role === 'admin' || 
+                      localStorage.getItem('isAdmin') === 'true' || 
+                      sessionStorage.getItem('isAdmin') === 'true';
+
+  const adminPanel = document.getElementById('adminDonationPanel');
+  const adminDonorList = document.getElementById('adminDonorListArea');
+
+  if (adminPanel) adminPanel.style.display = isUserAdmin ? 'block' : 'none';
+  if (adminDonorList) adminDonorList.style.display = isUserAdmin ? 'block' : 'none';
+
+  if (isUserAdmin) {
+    if (document.getElementById('adminBankInput')) document.getElementById('adminBankInput').value = bankInfo;
+    if (document.getElementById('adminContactInput')) document.getElementById('adminContactInput').value = contactInfo;
+    if (document.getElementById('adminVerseInput')) document.getElementById('adminVerseInput').value = thanksMsg;
+    renderDonationRecords();
+  }
+}
+
+// 후원 신청 제출 (후원자 정보 수집 & 감사 화면 전환)
+function submitDonation() {
+  const nameInput = document.getElementById('donorName');
+  const phoneInput = document.getElementById('donorPhone');
+  const amountInput = document.getElementById('donorAmount') || document.getElementById('donationAmount');
+  const messageInput = document.getElementById('donorMessage');
+
+  const name = nameInput ? nameInput.value.trim() : '익명';
+  const phone = phoneInput ? phoneInput.value.trim() : '-';
+  const amount = amountInput ? amountInput.value.trim() : '';
+  const message = messageInput ? messageInput.value.trim() : '';
+
+  if (!amount) {
+    alert("후원 금액을 입력해 주세요.");
+    return;
+  }
+
+  // 후원자 정보 저장
+  const newRecord = {
+    id: Date.now(),
+    date: new Date().toLocaleDateString(),
+    name: name,
+    phone: phone,
+    amount: amount,
+    message: message
+  };
+
+  const records = JSON.parse(localStorage.getItem('donationRecords') || '[]');
+  records.unshift(newRecord);
+  localStorage.setItem('donationRecords', JSON.stringify(records));
+
+  // 감사 화면으로 전환
+  const formArea = document.getElementById('donationFormArea');
+  const successArea = document.getElementById('donationSuccessArea');
+
+  if (formArea && successArea) {
+    formArea.style.display = 'none';
+    successArea.style.display = 'block';
+  } else {
+    alert("후원 신청이 완료되었습니다! 따뜻한 후원에 감사드립니다.");
+  }
+
+  loadDonationConfig();
+}
+
+// 관리자 정보 및 문구 저장
+function saveAdminDonationConfig() {
+  const bankVal = document.getElementById('adminBankInput') ? document.getElementById('adminBankInput').value.trim() : '';
+  const contactVal = document.getElementById('adminContactInput') ? document.getElementById('adminContactInput').value.trim() : '';
+  const verseVal = document.getElementById('adminVerseInput') ? document.getElementById('adminVerseInput').value.trim() : '';
+
+  if (bankVal) localStorage.setItem('donationBankInfo', bankVal);
+  if (contactVal) localStorage.setItem('donationContactInfo', contactVal);
+  if (verseVal) {
+    localStorage.setItem('donationThanksMsg', verseVal);
+    localStorage.setItem('donationVerse', verseVal);
+  }
+
+  alert("후원 정보 및 감사 문구가 성공적으로 수정되었습니다.");
+  loadDonationConfig();
+}
+
+// 관리자 후원 내역 출력
+// 후원 모달 열기 및 닫기
+function openDonationModal() {
+  const modal = document.getElementById('donationModal');
+  if (modal) {
+    modal.style.display = 'block';
+    resetDonationForm();
+    loadDonationConfig();
+  } else {
+    alert("donationModal 요소를 찾을 수 없습니다.");
+  }
+}
+
+function closeDonationModal() {
+  const modal = document.getElementById('donationModal');
+  if (modal) modal.style.display = 'none';
+}
+
+// 계좌번호 복사 기능
+function copyAccountNo(accountNo) {
+  navigator.clipboard.writeText(accountNo).then(() => {
+    alert("계좌번호가 복사되었습니다.");
+  }).catch(() => {
+    alert("계좌번호: " + accountNo);
+  });
+}
+
+// 화면 데이터 로드 함수
+function loadDonationConfig() {
+  const defaultBank = "🏦 토스뱅크 100270205705 (예금주: GTS동문회)";
+  const defaultContact = "📞 후원 문의: 동문회 총무 (010-0000-0000)";
+  const defaultVerse = "하나님이 모든 은혜를 너희에게 넘치게 하실 수 있나니\n이는 너희로 모든 일에 항상 모든 것이 넉넉하여 모든 착한 일을 넘치게 하게 하려 하심이라\n(고린도후서 9:8)\n\n보내주신 귀한 후원금은 동문회 발전과 후배들을 위해 귀하게 사용하겠습니다.";
+
+  const bankInfo = localStorage.getItem('donationBankInfo') || defaultBank;
+  const contactInfo = localStorage.getItem('donationContactInfo') || defaultContact;
+  const thanksMsg = localStorage.getItem('donationThanksMsg') || localStorage.getItem('donationVerse') || defaultVerse;
+
+  if (document.getElementById('displayBankInfo')) document.getElementById('displayBankInfo').innerText = bankInfo;
+  if (document.getElementById('displayContactInfo')) document.getElementById('displayContactInfo').innerText = contactInfo;
+  if (document.getElementById('displayThanksMessage')) document.getElementById('displayThanksMessage').innerText = thanksMsg;
+  if (document.getElementById('donationBibleVerse')) document.getElementById('donationBibleVerse').innerText = thanksMsg;
+
+  // 관리자 권한 체크
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  const isUserAdmin = (typeof isAdmin !== 'undefined' && isAdmin) || 
+                      currentUser.isAdmin === true || 
+                      currentUser.role === 'admin' || 
+                      localStorage.getItem('isAdmin') === 'true' || 
+                      sessionStorage.getItem('isAdmin') === 'true';
+
+  const adminPanel = document.getElementById('adminDonationPanel');
+  const adminDonorList = document.getElementById('adminDonorListArea');
+
+  if (adminPanel) adminPanel.style.display = isUserAdmin ? 'block' : 'none';
+  if (adminDonorList) adminDonorList.style.display = isUserAdmin ? 'block' : 'none';
+
+  if (isUserAdmin) {
+    if (document.getElementById('adminBankInput')) document.getElementById('adminBankInput').value = bankInfo;
+    if (document.getElementById('adminContactInput')) document.getElementById('adminContactInput').value = contactInfo;
+    if (document.getElementById('adminVerseInput')) document.getElementById('adminVerseInput').value = thanksMsg;
+    renderDonationRecords();
+  }
+}
+
+// 후원 신청 제출 (후원자 정보 수집 & 감사 화면 전환)
+function submitDonation() {
+  const nameInput = document.getElementById('donorName');
+  const phoneInput = document.getElementById('donorPhone');
+  const amountInput = document.getElementById('donorAmount') || document.getElementById('donationAmount');
+  const messageInput = document.getElementById('donorMessage');
+
+  const name = nameInput ? nameInput.value.trim() : '익명';
+  const phone = phoneInput ? phoneInput.value.trim() : '-';
+  const amount = amountInput ? amountInput.value.trim() : '';
+  const message = messageInput ? messageInput.value.trim() : '';
+
+  if (!amount) {
+    alert("후원 금액을 입력해 주세요.");
+    return;
+  }
+
+  // 후원자 정보 저장
+  const newRecord = {
+    id: Date.now(),
+    date: new Date().toLocaleDateString(),
+    name: name,
+    phone: phone,
+    amount: amount,
+    message: message
+  };
+
+  const records = JSON.parse(localStorage.getItem('donationRecords') || '[]');
+  records.unshift(newRecord);
+  localStorage.setItem('donationRecords', JSON.stringify(records));
+
+  // 감사 화면으로 전환
+  const formArea = document.getElementById('donationFormArea');
+  const successArea = document.getElementById('donationSuccessArea');
+
+  if (formArea && successArea) {
+    formArea.style.display = 'none';
+    successArea.style.display = 'block';
+  } else {
+    alert("후원 신청이 완료되었습니다! 따뜻한 후원에 감사드립니다.");
+  }
+
+  loadDonationConfig();
+}
+
+// 관리자 정보 및 문구 저장
+function saveAdminDonationConfig() {
+  const bankVal = document.getElementById('adminBankInput') ? document.getElementById('adminBankInput').value.trim() : '';
+  const contactVal = document.getElementById('adminContactInput') ? document.getElementById('adminContactInput').value.trim() : '';
+  const verseVal = document.getElementById('adminVerseInput') ? document.getElementById('adminVerseInput').value.trim() : '';
+
+  if (bankVal) localStorage.setItem('donationBankInfo', bankVal);
+  if (contactVal) localStorage.setItem('donationContactInfo', contactVal);
+  if (verseVal) {
+    localStorage.setItem('donationThanksMsg', verseVal);
+    localStorage.setItem('donationVerse', verseVal);
+  }
+
+  alert("후원 정보 및 감사 문구가 성공적으로 수정되었습니다.");
+  loadDonationConfig();
+}
+
+// 관리자 후원 내역 출력
+function renderDonationRecords() {
+  const listContainer = document.getElementById('donationRecordList');
+  if (!listContainer) return;
+
+  const records = JSON.parse(localStorage.getItem('donationRecords') || '[]');
+  if (records.length === 0) {
+    listContainer.innerHTML = '<p style="color: #888; font-size: 12px; margin: 5px 0;">등록된 후원 내역이 없습니다.</p>';
+    return;
+  }
+
+  let html = '<ul style="list-style: none; padding: 0; margin: 0; font-size: 12px;">';
+  records.forEach(rec => {
+    html += `
+      <li style="border-bottom: 1px solid #eee; padding: 6px 0; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <strong>${rec.name || '익명'}</strong> (${rec.amount}) - ${rec.phone || '-'}<br>
+          <span style="color: #666; font-size: 11px;">[${rec.date}] ${rec.message ? '| ' + rec.message : ''}</span>
+        </div>
+        <button onclick="deleteDonationRecord(${rec.id})" style="background: #ff4d4f; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;">삭제</button>
+      </li>
+    `;
+  });
+  html += '</ul>';
+  listContainer.innerHTML = html;
+}
+
+function deleteDonationRecord(recordId) {
+  if (!confirm("해당 후원 내역을 삭제하시겠습니까?")) return;
+  let records = JSON.parse(localStorage.getItem('donationRecords') || '[]');
+  records = records.filter(r => r.id !== recordId);
+  localStorage.setItem('donationRecords', JSON.stringify(records));
+  renderDonationRecords();
+}
+
+// 후원 폼 초기화
+function resetDonationForm() {
+  if (document.getElementById('donorName')) document.getElementById('donorName').value = '';
+  if (document.getElementById('donorPhone')) document.getElementById('donorPhone').value = '';
+  if (document.getElementById('donorAmount')) document.getElementById('donorAmount').value = '';
+  if (document.getElementById('donationAmount')) document.getElementById('donationAmount').value = '';
+  if (document.getElementById('donorMessage')) document.getElementById('donorMessage').value = '';
+
+  if (document.getElementById('donationFormArea')) document.getElementById('donationFormArea').style.display = 'block';
+  if (document.getElementById('donationSuccessArea')) document.getElementById('donationSuccessArea').style.display = 'none';
+}
     // 1. 핵심 상태 관리 변수
     let isLoggedIn = false;
     let isAdmin = false;
@@ -1163,170 +1466,104 @@ function updateQT() {
       renderAll();
     });
     // ==========================================
-// 후원 모달 제어 및 시스템 스크립트
-// ==========================================
+<!-- 동문회 후원 및 기부 안내 모달 -->
+<div id="donationModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 550px; padding: 25px; border-radius: 12px; background: #fff; margin: 3% auto; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+        <span onclick="closeModal('donationModal')" style="position: absolute; right: 18px; top: 12px; cursor: pointer; font-size: 26px; color: #666;">&times;</span>
+        
+        <h2 style="color: #004d2c; text-align: left; margin-top: 0; margin-bottom: 15px; font-size: 22px; border-bottom: 2px solid #004d2c; padding-bottom: 10px;">
+            동문회 후원 및 기부 안내
+        </h2>
 
-// 후원 모달 열기 및 닫기
-function openDonationModal() {
-  const modal = document.getElementById('donationModal');
-  if (modal) {
-    modal.style.display = 'block';
-    loadDonationConfig();
-  } else {
-    alert("donationModal 요소를 찾을 수 없습니다.");
-  }
-}
+        <!-- 계좌 및 후원 문의 정보 표시 구역 -->
+        <div style="background: #f0f7f3; border: 1px dashed #004d2c; border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 15px;">
+            <div id="displayBankInfo" style="font-weight: bold; color: #004d2c; font-size: 15px; margin-bottom: 6px;">
+                🏦 토스뱅크 100270205705 (예금주: GTS동문회)
+            </div>
+            <div id="displayContactInfo" style="font-size: 12px; color: #555;">
+                📞 후원 문의: 동문회 총무 (010-0000-0000)
+            </div>
+            <button onclick="copyAccountNo(document.getElementById('displayBankInfo').innerText)" style="margin-top: 8px; background: #004d2c; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                계좌번호 복사
+            </button>
+        </div>
 
-function closeDonationModal() {
-  const modal = document.getElementById('donationModal');
-  if (modal) modal.style.display = 'none';
-}
+        <!-- 성경 말씀 구절 표기 -->
+        <div style="background: #fafafa; border-left: 3px solid #004d2c; padding: 10px 12px; margin-bottom: 20px; font-size: 13px; color: #444; line-height: 1.5; italic;">
+            <span id="donationBibleVerse">"각각 그 마음에 정한 대로 할 것이요 아까움으로나 억지로 하지 말지니 하나님은 즐겨 내는 자를 사랑하시느니라"</span>
+            <div id="donationBibleRef" style="text-align: right; font-weight: bold; color: #004d2c; font-size: 11px; margin-top: 3px;">- 고린도후서 9:7 -</div>
+        </div>
 
-// 기존 openModal 함수 호환 연동
-const origOpenModal = window.openModal;
-window.openModal = function(id) {
-  if (id === 'donationModal') {
-    openDonationModal();
-  } else if (typeof origOpenModal === 'function') {
-    origOpenModal(id);
-  } else {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'block';
-  }
-};
+        <!-- 1. 후원자 정보 입력 폼 -->
+        <div id="donationFormArea">
+            <h4 style="margin: 0 0 10px 0; color: #333; font-size: 14px;">📝 후원자 정보 및 메시지 입력</h4>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 12px; font-weight: bold; color: #555;">성함 / 기수</label>
+                    <input type="text" id="donorName" placeholder="예: 홍길동 (10기)" style="width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 13px;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 12px; font-weight: bold; color: #555;">연락처</label>
+                    <input type="text" id="donorPhone" placeholder="010-0000-0000" style="width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 13px;">
+                </div>
+            </div>
 
-// 계좌번호 복사 기능
-function copyAccountNo(accountNo) {
-  navigator.clipboard.writeText(accountNo).then(() => {
-    alert("계좌번호(" + accountNo + ")가 복사되었습니다.");
-  }).catch(() => {
-    alert("계좌번호: " + accountNo);
-  });
-}
+            <div style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight: bold; color: #555;">후원 금액</label>
+                <input type="text" id="donorAmount" placeholder="예: 50,000원" style="width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 13px;">
+            </div>
 
-// 후원 설정 및 데이터 로드
-function loadDonationConfig() {
-  const savedVerse = localStorage.getItem('donationVerse') || '"각각 그 마음에 정한 대로 할 것이요 아까움으로나 억지로 하지 말지니 하나님은 즐겨 내는 자를 사랑하시느니라"';
-  const savedRef = localStorage.getItem('donationRef') || '- 고린도후서 9:7 -';
-  
-  const verseEl = document.getElementById('donationBibleVerse');
-  const refEl = document.getElementById('donationBibleRef');
-  if (verseEl) verseEl.textContent = savedVerse;
-  if (refEl) refEl.textContent = savedRef;
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 12px; font-weight: bold; color: #555;">응원 메시지 및 방명록 (선택)</label>
+                <textarea id="donorMessage" placeholder="동문회와 후배들을 향한 따뜻한 메시지를 남겨주세요." style="width: 100%; height: 55px; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; resize: none; font-size: 13px;"></textarea>
+            </div>
 
-  const isUserAdmin = (typeof isAdmin !== 'undefined' && isAdmin) || localStorage.getItem('isAdmin') === 'true';
+            <button onclick="submitDonation()" style="width: 100%; background: #004d2c; color: white; padding: 11px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px;">
+                후원하기 및 메시지 전송
+            </button>
+        </div>
 
-  const adminPanel = document.getElementById('adminDonationPanel');
-  if (adminPanel) {
-    if (isUserAdmin) {
-      adminPanel.style.display = 'block';
-      if (document.getElementById('adminVerseInput')) document.getElementById('adminVerseInput').value = savedVerse;
-      renderDonationRecords();
-    } else {
-      adminPanel.style.display = 'none';
-    }
-  }
-}
+        <!-- 2. 후원 완료 감사 화면 (초기 hidden) -->
+        <div id="donationSuccessArea" style="display: none; text-align: center; padding: 15px 5px;">
+            <div style="font-size: 36px; margin-bottom: 5px;">🙏</div>
+            <h3 style="color: #004d2c; margin: 0 0 10px 0;">따뜻한 후원에 감사드립니다!</h3>
+            
+            <div id="displayThanksMessage" style="background: #f4f9f5; border: 1px solid #c8e6c9; padding: 12px; border-radius: 8px; margin: 10px 0; font-size: 13px; line-height: 1.6; color: #2e7d32; text-align: left; white-space: pre-wrap;"></div>
 
-// 후원 신청 제출
-function submitDonation() {
-  const amountInput = document.getElementById('donationAmount');
-  const amount = amountInput ? amountInput.value.trim() : '';
-  const type = document.getElementById('donationType') ? document.getElementById('donationType').value : '일시 후원';
-  const method = document.getElementById('donationMethod') ? document.getElementById('donationMethod').value : '계좌이체';
+            <button onclick="resetDonationForm()" style="background: #004d2c; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; margin-top: 8px; font-size: 13px;">
+                확인 및 돌아가기
+            </button>
+        </div>
 
-  if (!amount) {
-    alert("후원 금액을 입력해 주세요.");
-    return;
-  }
+        <!-- 3. [관리자 전용] 계좌/문의처/말씀 수정 설정 창 -->
+        <div id="adminDonationPanel" style="display: none; background: #fffde7; padding: 12px; border: 1px solid #ffe082; border-radius: 8px; margin-top: 20px;">
+            <h4 style="margin: 0 0 8px 0; color: #f57f17; font-size: 13px;">🛠️ [관리자] 후원 안내 정보 수정</h4>
+            
+            <div style="margin-bottom: 6px;">
+                <label style="font-size: 11px; font-weight: bold; color: #666;">계좌 정보:</label>
+                <input type="text" id="adminBankInput" style="width: 100%; padding: 5px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+            </div>
+            <div style="margin-bottom: 6px;">
+                <label style="font-size: 11px; font-weight: bold; color: #666;">후원 문의처:</label>
+                <input type="text" id="adminContactInput" style="width: 100%; padding: 5px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+            </div>
+            <div style="margin-bottom: 8px;">
+                <label style="font-size: 11px; font-weight: bold; color: #666;">감사 문구 & 성경 말씀:</label>
+                <textarea id="adminVerseInput" style="width: 100%; height: 50px; padding: 5px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; resize: vertical;"></textarea>
+            </div>
+            <button onclick="saveAdminDonationConfig()" style="background: #f57f17; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px;">
+                수정사항 저장하기
+            </button>
+        </div>
 
-  const newRecord = {
-    id: Date.now(),
-    date: new Date().toISOString().slice(0, 10),
-    type: type,
-    method: method,
-    amount: amount
-  };
-
-  const records = JSON.parse(localStorage.getItem('donationRecords')) || [];
-  records.unshift(newRecord);
-  localStorage.setItem('donationRecords', JSON.stringify(records));
-
-  alert(type + " " + amount + "원 (" + method + ") 후원 신청이 완료되었습니다!");
-  if (amountInput) amountInput.value = '';
-  loadDonationConfig();
-}
-
-// 관리자 말씀 구절 저장
-function saveDonationVerse() {
-  const newVerse = document.getElementById('adminVerseInput').value.trim();
-  if (!newVerse) {
-    alert("말씀 구절을 입력해 주세요.");
-    return;
-  }
-  localStorage.setItem('donationVerse', newVerse);
-  alert("성경 말씀 구절이 변경되었습니다.");
-  loadDonationConfig();
-}
-
-// 관리자 후원 내역 출력
-function renderDonationRecords() {
-  const listContainer = document.getElementById('donationRecordList');
-  if (!listContainer) return;
-
-  const records = JSON.parse(localStorage.getItem('donationRecords')) || [];
-  if (records.length === 0) {
-    listContainer.innerHTML = '<p style="color: #888; font-size: 12px; margin: 5px 0;">등록된 후원 내역이 없습니다.</p>';
-    return;
-  }
-
-  let html = '<ul style="list-style: none; padding: 0; margin: 0; font-size: 12px;">';
-  records.forEach(rec => {
-    html += `
-      <li style="border-bottom: 1px solid #eee; padding: 5px 0; display: flex; justify-content: space-between; align-items: center;">
-        <div><strong>[${rec.date}]</strong> ${rec.type} - ${rec.amount}원 (${rec.method})</div>
-        <button onclick="deleteDonationRecord(${rec.id})" style="background: #ff4d4f; color: white; border: none; padding: 2px 5px; border-radius: 3px; cursor: pointer; font-size: 11px;">삭제</button>
-      </li>
-    `;
-  });
-  html += '</ul>';
-  listContainer.innerHTML = html;
-}
-
-function deleteDonationRecord(recordId) {
-  if (!confirm("해당 후원 내역을 삭제하시겠습니까?")) return;
-  let records = JSON.parse(localStorage.getItem('donationRecords')) || [];
-  records = records.filter(r => r.id !== recordId);
-  localStorage.setItem('donationRecords', JSON.stringify(records));
-  renderDonationRecords();
-}
-
-document.addEventListener('DOMContentLoaded', loadDonationConfig);
-
-// 관리자 권한 확인 및 UI 업데이트
-function updateAboutAdminUI() {
-    const adminForm = document.getElementById('adminAboutForm');
-    const textElement = document.getElementById('aboutContentText');
-    const textInput = document.getElementById('aboutTextInput');
-
-    const savedAbout = localStorage.getItem('aboutText');
-    if (savedAbout && textElement) textElement.innerText = savedAbout;
-
-    if (!adminForm) return;
-
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    const isAdmin = currentUser.isAdmin === true || 
-                    currentUser.role === 'admin' || 
-                    localStorage.getItem('isAdmin') === 'true' || 
-                    sessionStorage.getItem('isAdmin') === 'true';
-
-    if (isAdmin) {
-        adminForm.style.display = 'block';
-        if (textInput && textElement) textInput.value = textElement.innerText;
-    } else {
-        adminForm.style.display = 'none';
-    }
-}
+        <!-- 4. [관리자 전용] 후원자 접수 내역 -->
+        <div id="adminDonorListArea" style="display: none; margin-top: 15px;">
+            <h4 style="color: #004d2c; font-size: 13px; margin: 0 0 6px 0;">📋 [관리자] 접수된 후원자 명단</h4>
+            <div id="donationRecordList" style="max-height: 120px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px; padding: 6px; font-size: 12px; background: #fafafa;"></div>
+        </div>
+    </div>
+</div>
 
 // 1. 동문회 소개 및 관리자 권한 제어
 function updateAboutAdminUI() {
@@ -1517,10 +1754,84 @@ function deleteGalleryItem(id) {
     localStorage.setItem('galleryItems', JSON.stringify(galleryItems));
     renderGallery();
 }
+// --- 로그인 체크 및 모달 제어 기능 ---
+function openModal(modalId) {
+    // 1. 현재 로그인 유저 상태 확인
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    const isLoggedIn = currentUser !== null || localStorage.getItem('isLoggedIn') === 'true';
 
-// 모달이 열릴 때 갤러리 로드 연동
-document.addEventListener('DOMContentLoaded', renderGallery);
-setInterval(renderGallery, 1000);
+    // 2. 동문회 지난활동(galleryModal) 접근 시 로그인 검사
+    if (modalId === 'galleryModal' && !isLoggedIn) {
+        alert("동문회 지난활동은 로그인 후 이용하실 수 있습니다.");
+        
+        // 로그인 모달 열어주기
+        const loginModal = document.getElementById('loginModal');
+        if (loginModal) {
+            loginModal.style.display = 'block';
+        }
+        return; // 갤러리 모달 열기 중단
+    }
+
+    // 3. 로그인 되었거나 일반 모달은 정상 오픈
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'block';
+        if (modalId === 'galleryModal' && typeof renderGallery === 'function') {
+            renderGallery();
+        }
+    }
+}
+
+// --- 로그인 회원 전용 갤러리 출력 ---
+function renderGallery() {
+    const grid = document.getElementById('galleryGrid');
+    const adminForm = document.getElementById('adminGalleryForm');
+    if (!grid) return;
+
+    // 로그인 여부 확인
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    const isLoggedIn = currentUser !== null || localStorage.getItem('isLoggedIn') === 'true';
+
+    // 비로그인 시 안내 문구 표기
+    if (!isLoggedIn) {
+        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #e53935; padding: 40px 0; font-weight: bold;">로그인 후 동문회 활동 사진을 확인하실 수 있습니다.</p>';
+        if (adminForm) adminForm.style.display = 'none';
+        return;
+    }
+
+    // 관리자 여부 확인
+    const noticeForm = document.getElementById('adminNoticeForm');
+    const isNoticeVisible = noticeForm && (noticeForm.style.display === 'block' || noticeForm.style.display === '');
+    const isAdmin = isNoticeVisible || (currentUser && (currentUser.isAdmin === true || currentUser.role === 'admin')) || localStorage.getItem('isAdmin') === 'true';
+
+    if (adminForm) {
+        adminForm.style.display = isAdmin ? 'block' : 'none';
+    }
+
+    const galleryItems = JSON.parse(localStorage.getItem('galleryItems') || '[]');
+    const filteredItems = currentSelectedYear === 'ALL' 
+        ? galleryItems 
+        : galleryItems.filter(item => item.year === currentSelectedYear);
+
+    if (filteredItems.length === 0) {
+        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px 0;">등록된 활동 사진이 없습니다.</p>';
+        return;
+    }
+
+    grid.innerHTML = filteredItems.map(item => `
+        <div style="border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; display: flex; flex-direction: column;">
+            <img src="${item.imageUrl}" alt="${item.title}" style="width: 100%; height: 160px; object-fit: cover; display: block;">
+            <div style="padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <span style="font-size: 11px; background: #e8f5e9; color: #004d2c; padding: 2px 6px; border-radius: 4px; font-weight: bold;">${item.year}년</span>
+                    <p style="margin: 6px 0 4px 0; font-size: 14px; font-weight: bold; color: #333;">${item.title}</p>
+                    ${item.desc ? `<p style="margin: 0; font-size: 12px; color: #666; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${item.desc}</p>` : ''}
+                </div>
+            </div>
+            ${isAdmin ? `<button onclick="deleteGalleryItem(${item.id})" style="position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.7); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer;">&times;</button>` : ''}
+        </div>
+    `).join('');
+}
 </script>
 </body>
 </html>
