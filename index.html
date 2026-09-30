@@ -411,45 +411,57 @@
     </div>
   </div>
 
+<!-- 좋은나무국제학교 소개 모달 -->
 <div id="schoolModal" class="modal">
-  <div class="modal-content" style="max-width: 800px;">
-    <span class="close-btn" onclick="closeModal('schoolModal')">&times;</span>
-    <h2 class="modal-title" data-i18n="school" style="color: #004d2c; border-bottom: 2px solid #004d2c; padding-bottom: 10px;">좋은나무국제학교 소개</h2>
-    
-    <p style="margin-top: 20px; line-height: 1.6; color: #333;">
-      좋은나무국제학교는 기독교적 가치관을 바탕으로 글로벌 인재를 양성하는 배움터입니다. 지성과 영성, 인성을 겸비한 리더를 세우기 위해 최선을 다하고 있습니다.
-    </p>
+  <div class="modal-content" style="max-width: 800px; padding: 25px;">
+    <span class="close" onclick="closeModal('schoolModal')">&times;</span>
+    <h2 style="margin-top:0; color:#004d2c; text-align:center;">좋은나무국제학교 소개</h2>
 
-    <h3 style="color: #004d2c; margin-top: 30px; margin-bottom: 15px;">좋은나무국제학교 미디어 & 홍보 영상</h3>
-    
-    <!-- 유튜브 임베드 영역 -->
-    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
-      <iframe id="schoolYoutubeIframe" src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+    <!-- 메인 동영상 영역 (16:9 반응형 비율 적용) -->
+    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+      <iframe id="schoolVideoFrame" 
+              src="https://www.youtube.com/embed/DtDiftyy4sU" 
               style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" 
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowfullscreen></iframe>
+              allowfullscreen>
+      </iframe>
     </div>
 
-    <!-- 홈페이지 바로가기 버튼 -->
+    <!-- 학교 설명글 표시 영역 -->
+    <div id="displaySchoolDesc" style="font-size: 15px; line-height: 1.7; color: #444; background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px; white-space: pre-line;">
+      좋은나무국제학교(GTIS)는 기독교 세계관을 바탕으로 글로벌 리더를 양성하는 배움터입니다.
+    </div>
+
+    <!-- 공식 링크 버튼 -->
     <div style="margin-top: 20px; text-align: center;">
-      <a id="schoolWebsiteBtn" href="http://gtis.or.kr" target="_blank" 
-         style="display: inline-block; padding: 12px 24px; background: #004d2c; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold; transition: background 0.3s;">
-        🌐 좋은나무국제학교 공식 홈페이지 바로가기
+      <a id="schoolChannelLink" href="https://www.youtube.com/@GoodTreeSchoolOfficial" target="_blank" 
+         style="display: inline-block; padding: 12px 24px; background: #004d2c; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold; transition: 0.3s;">
+        🌐 좋은나무국제학교 공식 채널 바로가기
       </a>
     </div>
 
-    <!-- 관리자 전용 링크 수정 폼 -->
-    <div id="adminSchoolConfig" style="display: none; margin-top: 30px; padding: 15px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; text-align: left;">
-      <h4 style="margin-top: 0; color: #333;">⚙️ 관리자 설정 (유튜브 & 홈페이지 링크 변경)</h4>
-      <div style="margin-bottom: 10px;">
-        <label style="font-size: 13px; font-weight: bold;">유튜브 영상 주소 (URL 또는 비디오 ID):</label>
-        <input type="text" id="adminYoutubeInput" placeholder="예: https://www.youtube.com/watch?v=비디오ID" style="width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box;">
+    <!-- 🔒 관리자 전용 설정 폼 -->
+    <div id="adminSchoolConfig" style="display: none; margin-top: 30px; padding: 20px; background: #f5f5f5; border: 1px dashed #ccc; border-radius: 8px;">
+      <h4 style="margin-top: 0; color: #333;">⚙️ 관리자 설정 (학교 소개 / 동영상 / 링크 변경)</h4>
+      
+      <div style="margin-bottom: 12px;">
+        <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px;">유튜브 영상 주소 (URL 또는 ID):</label>
+        <input type="text" id="adminYoutubeInput" placeholder="예: https://www.youtube.com/watch?v=DtDiftyy4sU" style="width: 100%; padding: 8px; box-sizing: border-box;">
       </div>
-      <div style="margin-bottom: 10px;">
-        <label style="font-size: 13px; font-weight: bold;">학교 공식 홈페이지 주소:</label>
-        <input type="text" id="adminWebsiteInput" placeholder="예: http://gtis.or.kr" style="width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box;">
+
+      <div style="margin-bottom: 12px;">
+        <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px;">학교 설명글:</label>
+        <textarea id="adminSchoolDescInput" rows="4" style="width: 100%; padding: 8px; box-sizing: border-box; resize: vertical;"></textarea>
       </div>
-      <button onclick="saveSchoolLinks()" style="background: #2196F3; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">설정 저장하기</button>
+
+      <div style="margin-bottom: 15px;">
+        <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px;">공식 링크 주소:</label>
+        <input type="text" id="adminWebsiteInput" placeholder="예: https://www.youtube.com/@GoodTreeSchoolOfficial" style="width: 100%; padding: 8px; box-sizing: border-box;">
+      </div>
+
+      <button onclick="saveSchoolLinks()" style="background: #2196F3; color: white; border: none; padding: 10px 18px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+        저장하기
+      </button>
     </div>
   </div>
 </div>
@@ -487,6 +499,60 @@
 
   <!-- ==================== 자바스크립트 로직 ==================== -->
  <script>
+  // 1. 학교 모달 정보 렌더링 함수
+function renderSchoolConfig() {
+  const defaultVideoId = "DtDiftyy4sU";
+  const defaultLink = "https://www.youtube.com/@GoodTreeSchoolOfficial";
+  const defaultDesc = "좋은나무국제학교(GTIS)는 기독교 세계관을 바탕으로 글로벌 리더를 양성하는 배움터입니다.";
+
+  const videoId = localStorage.getItem('schoolVideoId') || defaultVideoId;
+  const link = localStorage.getItem('schoolWebsiteUrl') || defaultLink;
+  const desc = localStorage.getItem('schoolDesc') || defaultDesc;
+
+  // 화면 반영
+  const frame = document.getElementById('schoolVideoFrame');
+  if (frame) frame.src = `https://www.youtube.com/embed/${videoId}`;
+
+  const linkEl = document.getElementById('schoolChannelLink');
+  if (linkEl) linkEl.href = link;
+
+  const descEl = document.getElementById('displaySchoolDesc');
+  if (descEl) descEl.textContent = desc;
+
+  // 관리자 권한 폼 제어 및 입력창 채우기
+  const adminPanel = document.getElementById('adminSchoolConfig');
+  if (adminPanel) adminPanel.style.display = (typeof isAdmin !== 'undefined' && isAdmin) ? 'block' : 'none';
+
+  if (typeof isAdmin !== 'undefined' && isAdmin) {
+    if (document.getElementById('adminYoutubeInput')) document.getElementById('adminYoutubeInput').value = `https://www.youtube.com/watch?v=${videoId}`;
+    if (document.getElementById('adminWebsiteInput')) document.getElementById('adminWebsiteInput').value = link;
+    if (document.getElementById('adminSchoolDescInput')) document.getElementById('adminSchoolDescInput').value = desc;
+  }
+}
+
+// 2. 관리자 설정 저장 함수
+function saveSchoolLinks() {
+  if (typeof isAdmin !== 'undefined' && !isAdmin) return alert("관리자 권한이 필요합니다.");
+
+  const ytInput = document.getElementById('adminYoutubeInput').value.trim();
+  const webInput = document.getElementById('adminWebsiteInput').value.trim();
+  const descInput = document.getElementById('adminSchoolDescInput').value.trim();
+
+  // 유튜브 비디오 ID 추출 (URL 형태든 순수 ID든 추출)
+  let videoId = ytInput;
+  if (ytInput.includes('v=')) {
+    videoId = ytInput.split('v=')[1].split('&')[0];
+  } else if (ytInput.includes('youtu.be/')) {
+    videoId = ytInput.split('youtu.be/')[1].split('?')[0];
+  }
+
+  if (videoId) localStorage.setItem('schoolVideoId', videoId);
+  if (webInput) localStorage.setItem('schoolWebsiteUrl', webInput);
+  if (descInput) localStorage.setItem('schoolDesc', descInput);
+
+  alert("학교 정보 및 설정이 성공적으로 저장되었습니다.");
+  renderSchoolConfig();
+}
     // 1. 핵심 상태 관리 변수
     let isLoggedIn = false;
     let isAdmin = false;
