@@ -212,7 +212,7 @@
 
   <!-- ==================== 전체 화면 모달 창 모음 ==================== -->
 
- <!-- 1. 동문회소개 Modal -->
+ <!-- 1. 동문회소개 Modal -->-239
 <div id="aboutModal" class="modal">
     <span class="close-btn" onclick="closeModal('aboutModal')">&times;</span>
     <div class="modal-content">
@@ -237,7 +237,6 @@
         </div>
     </div>
 </div>
-
   <!-- 2. 공지사항 Modal -->
   <div id="noticeModal" class="modal">
     <span class="close-btn" onclick="closeModal('noticeModal')">&times;</span>
@@ -1282,13 +1281,13 @@ function deleteDonationRecord(recordId) {
 
 document.addEventListener('DOMContentLoaded', loadDonationConfig);
 
-// 1. 관리자 권한에 따라 동문회 소개 수정 창을 보여주거나 숨기는 함수
+// 1. 관리자 권한 체크 및 UI 전환
 function updateAboutAdminUI() {
     const adminForm = document.getElementById('adminAboutForm');
     const textElement = document.getElementById('aboutContentText');
     const textInput = document.getElementById('aboutTextInput');
 
-    // 저장된 소개글 적용
+    // 저장된 소개글 불러오기
     const savedAbout = localStorage.getItem('aboutText');
     if (savedAbout && textElement) {
         textElement.innerText = savedAbout;
@@ -1296,47 +1295,23 @@ function updateAboutAdminUI() {
 
     if (!adminForm) return;
 
-    // 다양한 로그인 상태 체크 (모든 관리자 로그인 형태 대응)
+    // 현재 사이트의 실제 로그인 체크 방식 전체 적용
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true' || currentUser.isLoggedIn;
     const isAdmin = currentUser.isAdmin === true || 
-                    currentUser.role === 'admin' || 
                     localStorage.getItem('isAdmin') === 'true' || 
-                    sessionStorage.getItem('isAdmin') === 'true';
+                    sessionStorage.getItem('isAdmin') === 'true' ||
+                    (isLoggedIn && (currentUser.role === 'admin' || currentUser.username === 'admin'));
 
+    // 관리자 로그인 상태일 때만 수정 박스 켜기
     if (isAdmin) {
-        adminForm.style.display = 'block'; // 관리자만 보임
-        if (textInput && textElement) {
+        adminForm.style.display = 'block';
+        if (textInput && textElement && !textInput.value) {
             textInput.value = textElement.innerText;
         }
     } else {
-        adminForm.style.display = 'none';  // 일반 유저는 안 보임
+        adminForm.style.display = 'none';
     }
-}
-
-// 2. 주기적으로 관리자 로그인 상태를 체크 (로그인/로그아웃 즉시 반영)
-setInterval(updateAboutAdminUI, 500);
-
-// 3. 페이지 로드 시 및 모달 열릴 때 체크
-document.addEventListener('DOMContentLoaded', updateAboutAdminUI);
-
-// 4. 소개글 저장 기능 (관리자용)
-function saveAboutText() {
-    const textInput = document.getElementById('aboutTextInput');
-    const textElement = document.getElementById('aboutContentText');
-    
-    if (!textInput || !textInput.value.trim()) {
-        alert("내용을 입력해 주세요.");
-        return;
-    }
-    
-    const newText = textInput.value;
-    localStorage.setItem('aboutText', newText);
-    
-    if (textElement) {
-        textElement.innerText = newText;
-    }
-    
-    alert("동문회 소개글이 성공적으로 수정되었습니다!");
 }
   </script>
 </body>
