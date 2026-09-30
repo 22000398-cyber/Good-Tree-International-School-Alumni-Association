@@ -219,13 +219,14 @@
     <div class="modal-content">
         <h2 class="modal-title" data-i18n="about">좋은나무국제학교 동문회 소개</h2>
         
-        <!-- [관리자 전용] 소개글 수정 폼 (기본 숨김) -->
-        <div id="adminAboutForm" class="admin-box admin-only" style="display: none; margin-bottom: 20px; border: 1px solid #004d2c; padding: 15px; border-radius: 8px; background-color: #f9f9f9;">
+        <!-- [관리자 전용] 소개글 수정 폼 (JS로 제어) -->
+        <div id="adminAboutForm" class="admin-box" style="display: none; margin-bottom: 20px; border: 1px solid #004d2c; padding: 15px; border-radius: 8px; background-color: #f9f9f9;">
             <h3 style="color: #004d2c; margin-top: 0; margin-bottom: 10px; font-size: 16px;">[관리자] 동문회 소개글 수정</h3>
             <textarea id="aboutTextInput" style="width: 100%; height: 100px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit; resize: vertical; box-sizing: border-box;"></textarea>
             <button class="btn" style="margin-top: 10px; width: 100%; background-color: #004d2c; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer;" onclick="saveAboutText()">소개글 저장하기</button>
         </div>
 
+        <!-- 일반 사용자/공통 소개글 표시 영역 -->
         <div id="aboutTextDisplay">
             <p id="aboutContentText" style="font-size: 16px; color: #444; line-height: 1.8; margin-bottom: 20px;">
                 좋은나무국제학교 동문회는 졸업생 간의 깊은 유대를 형성하고, 모교의 지속적인 발전을 지원하며, 세상 속에서 기독교적 가치를 발휘하는 선한 영향력을 확장하기 위해 설립되었습니다.
@@ -1306,12 +1307,13 @@ function updateAboutAdminUI() {
     }
 }
 
-// 1. 관리자 권한 확인 및 UI 업데이트 함수
+// 1. 관리자 상태 확인 및 UI 노출 함수
 function updateAboutAdminUI() {
     const adminForm = document.getElementById('adminAboutForm');
     const textElement = document.getElementById('aboutContentText');
     const textInput = document.getElementById('aboutTextInput');
 
+    // 저장된 소개글 불러오기
     const savedAbout = localStorage.getItem('aboutText');
     if (savedAbout && textElement) {
         textElement.innerText = savedAbout;
@@ -1319,19 +1321,22 @@ function updateAboutAdminUI() {
 
     if (!adminForm) return;
 
+    // 현재 사이트의 모든 관리자 로그인 상태 체크 조건 검사
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
     const isAdmin = currentUser.isAdmin === true || 
                     currentUser.role === 'admin' || 
                     localStorage.getItem('isAdmin') === 'true' || 
-                    sessionStorage.getItem('isAdmin') === 'true';
+                    sessionStorage.getItem('isAdmin') === 'true' ||
+                    localStorage.getItem('userRole') === 'admin';
 
+    // 관리자일 경우 무조건 보여주기 (!important 스타일 직접 주입)
     if (isAdmin) {
-        adminForm.style.display = 'block';
-        if (textInput && textElement && !textInput.value) {
+        adminForm.style.setProperty('display', 'block', 'important');
+        if (textInput && textElement && (!textInput.value || textInput.value === '')) {
             textInput.value = textElement.innerText;
         }
     } else {
-        adminForm.style.display = 'none';
+        adminForm.style.setProperty('display', 'none', 'important');
     }
 }
 
@@ -1341,18 +1346,21 @@ function saveAboutText() {
     const textElement = document.getElementById('aboutContentText');
     
     if (!textInput || !textInput.value.trim()) {
-        return alert("내용을 입력해 주세요.");
+        alert("내용을 입력해 주세요.");
+        return;
     }
     
-    localStorage.setItem('aboutText', textInput.value);
+    const newText = textInput.value.trim();
+    localStorage.setItem('aboutText', newText);
+    
     if (textElement) {
-        textElement.innerText = textInput.value;
+        textElement.innerText = newText;
     }
     alert("동문회 소개글이 성공적으로 수정되었습니다!");
 }
 
-// 3. 주기적 권한 감지 실행
-setInterval(updateAboutAdminUI, 1000);
+// 3. 주기적 감지 및 로드
+setInterval(updateAboutAdminUI, 500);
 document.addEventListener('DOMContentLoaded', updateAboutAdminUI);
 </script>
 </body>
