@@ -1282,53 +1282,44 @@ function deleteDonationRecord(recordId) {
 
 document.addEventListener('DOMContentLoaded', loadDonationConfig);
 
-// 동문회 소개글 불러오기 및 관리자 권한 확인
-function checkAboutAdminStatus() {
+// 1. 관리자 권한에 따라 동문회 소개 수정 창을 보여주거나 숨기는 함수
+function updateAboutAdminUI() {
     const adminForm = document.getElementById('adminAboutForm');
     const textElement = document.getElementById('aboutContentText');
     const textInput = document.getElementById('aboutTextInput');
 
-    // 1. 저장된 소개글 불러오기
+    // 저장된 소개글 적용
     const savedAbout = localStorage.getItem('aboutText');
     if (savedAbout && textElement) {
         textElement.innerText = savedAbout;
     }
 
-    // 2. 관리자 로그인 여부 확인
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    const isAdmin = currentUser.isAdmin || localStorage.getItem('isAdmin') === 'true' || currentUser.role === 'admin';
+    if (!adminForm) return;
 
-    if (adminForm) {
-        if (isAdmin) {
-            adminForm.style.display = 'block'; // 관리자일 때만 노출
-            if (textInput && textElement) {
-                textInput.value = textElement.innerText;
-            }
-        } else {
-            adminForm.style.display = 'none'; // 일반 사용자는 숨김
+    // 다양한 로그인 상태 체크 (모든 관리자 로그인 형태 대응)
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const isAdmin = currentUser.isAdmin === true || 
+                    currentUser.role === 'admin' || 
+                    localStorage.getItem('isAdmin') === 'true' || 
+                    sessionStorage.getItem('isAdmin') === 'true';
+
+    if (isAdmin) {
+        adminForm.style.display = 'block'; // 관리자만 보임
+        if (textInput && textElement) {
+            textInput.value = textElement.innerText;
         }
+    } else {
+        adminForm.style.display = 'none';  // 일반 유저는 안 보임
     }
 }
 
-// 페이지 로드 시 및 모달 열릴 때 실행
-document.addEventListener('DOMContentLoaded', checkAboutAdminStatus);
+// 2. 주기적으로 관리자 로그인 상태를 체크 (로그인/로그아웃 즉시 반영)
+setInterval(updateAboutAdminUI, 500);
 
-// 기존 openModal 함수에 연동
-const originalOpenModalForAbout = window.openModal;
-window.openModal = function(modalId) {
-    if (typeof originalOpenModalForAbout === 'function') {
-        originalOpenModalForAbout(modalId);
-    } else {
-        const modal = document.getElementById(modalId);
-        if (modal) modal.style.display = 'block';
-    }
-    
-    if (modalId === 'aboutModal') {
-        checkAboutAdminStatus();
-    }
-};
+// 3. 페이지 로드 시 및 모달 열릴 때 체크
+document.addEventListener('DOMContentLoaded', updateAboutAdminUI);
 
-// 소개글 저장 함수 (관리자 전용)
+// 4. 소개글 저장 기능 (관리자용)
 function saveAboutText() {
     const textInput = document.getElementById('aboutTextInput');
     const textElement = document.getElementById('aboutContentText');
