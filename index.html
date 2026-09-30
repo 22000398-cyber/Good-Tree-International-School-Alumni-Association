@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -24,7 +24,8 @@
       "inLanguage": "ko-KR",
       "description": "좋은나무국제학교 동문회 공식 사이트"
     }
-  </script>
+  if(typeof window.openModal === function){ const origOpen = window.openModal; window.openModal = function(id){ origOpen(id); if(id===aboutModal) setTimeout(updateAboutAdminUI, 100); }; }
+</script>
   <style>
     /* 기본 리셋 & 폰트 설정 */
     html { scroll-behavior: smooth; }
@@ -1313,6 +1314,7 @@ function updateAboutAdminUI() {
         adminForm.style.display = 'none';
     }
 }
-  </script>
+  if(typeof window.openModal === function){ const origOpen = window.openModal; window.openModal = function(id){ origOpen(id); if(id===aboutModal) setTimeout(updateAboutAdminUI, 100); }; }
+</script>
 </body>
 </html>
