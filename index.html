@@ -1,46 +1,86 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <!-- Firebase SDK 로드 (실시간 데이터베이스 및 전 세계 공유 지원) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>좋은나무국제학교 동문회</title>
-  <meta name="description" content="좋은나무국제학교 동문회 공식 사이트">
+  <meta name="google-site-verification" content="h1UwEISMUiKwHZAbPkBzeoqPOXEBSJp48Qf58o93J5g">
+  <meta name="description" content="좋은나무국제학교 동문회 공식 사이트입니다. 동문회 소개, 동문 네트워크, 지난 활동, 홍보 영상과 후원 안내를 확인할 수 있습니다.">
+  <meta name="keywords" content="좋은나무국제학교, 좋은나무국제학교 동문회, 동문회, 동문 네트워크, 학교 동문">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://22000398-cyber.github.io/Good-Tree-International-School-Alumni-Association/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:title" content="좋은나무국제학교 동문회">
+  <meta property="og:description" content="좋은나무국제학교 동문회 공식 사이트에서 동문 네트워크와 활동 소식을 만나보세요.">
+  <meta property="og:url" content="https://22000398-cyber.github.io/Good-Tree-International-School-Alumni-Association/">
   
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "좋은나무국제학교 동문회",
+      "alternateName": "Good-Tree International School Alumni Association",
+      "url": "https://22000398-cyber.github.io/Good-Tree-International-School-Alumni-Association/",
+      "inLanguage": "ko-KR",
+      "description": "좋은나무국제학교 동문회 공식 사이트"
+    }
+  </script>
 
   <style>
+    /* 기본 리셋 & 폰트 설정 */
     html { scroll-behavior: smooth; }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { color: #333; background-color: #224226; line-height: 1.6; word-break: keep-all; }
 
+    /* 헤더 및 네비게이션 */
     header { position: absolute; top: 0; left: 0; width: 100%; z-index: 1000; background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%); }
     .top-utility { display: flex; justify-content: flex-end; align-items: center; padding: 12px 50px; font-size: 14px; gap: 15px; }
-    .top-utility a { color: rgba(255,255,255,0.85); text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+    .top-utility a { color: rgba(255,255,255,0.85); text-decoration: none; transition: color 0.2s; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
     .top-utility a:hover { color: #fff; text-decoration: underline; }
     
     .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 50px; }
     .logo { display: flex; align-items: center; font-size: 22px; font-weight: 700; color: #477659; text-decoration: none; gap: 10px; }
     .logo img { height: 38px; width: auto; object-fit: contain; }
     .nav-links { display: flex; list-style: none; flex-wrap: wrap; gap: 20px; }
-    .nav-links a { color: #31795d; text-decoration: none; font-size: 16px; font-weight: 500; cursor: pointer; }
+    .nav-links a { color: #31795d; text-decoration: none; font-size: 16px; font-weight: 500; cursor: pointer; transition: color 0.3s; }
     .nav-links a:hover { color: #6bb08c; }
 
-    .hero { position: relative; height: 75vh; min-height: 480px; overflow: hidden; background: #00331d; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; text-align: center; padding: 0 20px; }
+    /* 히어로 섹션 */
+    .hero {
+      position: relative; height: 75vh; min-height: 480px;
+      overflow: hidden; background: #00331d;
+      display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; text-align: center; padding: 0 20px;
+    }
     .hero::after { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.65)); pointer-events: none; }
     .hero-bg-fallback { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.7); }
-    .hero h1 { font-size: clamp(28px, 5vw, 48px); font-weight: 700; margin-bottom: 12px; letter-spacing: -1px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); position: relative; z-index: 2; }
-    .hero p { font-size: clamp(15px, 2.5vw, 20px); font-weight: 300; opacity: 0.95; max-width: 700px; text-shadow: 0 1px 5px rgba(0,0,0,0.5); position: relative; z-index: 2; }
+    .hero h1 { font-size: clamp(28px, 5vw, 48px); font-weight: 700; margin-bottom: 12px; letter-spacing: -1px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+    .hero p { font-size: clamp(15px, 2.5vw, 20px); font-weight: 300; opacity: 0.95; max-width: 700px; text-shadow: 0 1px 5px rgba(0,0,0,0.5); }
+    .hero h1, .hero p { position: relative; z-index: 2; }
 
+    /* 동영상 음소거 제어 버튼 */
+    .hero-sound-toggle {
+      position: relative; z-index: 2; margin-top: 20px; padding: 10px 20px;
+      background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.7);
+      color: #fff; border-radius: 20px; font-size: 14px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;
+    }
+    .hero-sound-toggle:hover { background: rgba(0, 77, 44, 0.8); border-color: #6bb08c; }
+
+    /* 사용자 / 관리자 상태 배지 */
     .user-status-bar { position: relative; z-index: 2; margin-top: 15px; font-size: 13px; color: rgba(255,255,255,0.9); background: rgba(0,0,0,0.3); padding: 6px 16px; border-radius: 20px; backdrop-filter: blur(4px); }
     .badge { padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 5px; }
     .badge-admin { background: #d9534f; color: #fff; }
     .badge-user { background: #28a745; color: #fff; }
 
+    /* 메인 컨테이너 & 카드 */
     .container { max-width: 1200px; margin: -50px auto 60px; position: relative; z-index: 10; padding: 0 20px; }
     .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
     .card { background: #fff; padding: 32px 24px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); transition: all 0.3s ease; text-align: center; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #eef2f0; }
@@ -50,89 +90,252 @@
     .card p { color: #666; font-size: 14px; margin-bottom: 22px; flex-grow: 1; line-height: 1.6; }
     
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 22px; background-color: #004d2c; color: #fff; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
-    .btn:hover { background-color: #00331d; }
-    .btn-success { background-color: #28a745; color: #fff; }
+    .btn:hover { background-color: #00331d; transform: translateY(-1px); }
+    .btn-secondary { background-color: #6c757d; }
+    .btn-secondary:hover { background-color: #5a6268; }
+    .btn-warning { background-color: #ffc107; color: #212529; }
+    .btn-warning:hover { background-color: #e0a800; }
     .btn-danger { background-color: #d9534f; color: #fff; }
+    .btn-danger:hover { background-color: #c9302c; }
+    .btn-success { background-color: #28a745; color: #fff; }
+    .btn-success:hover { background-color: #218838; }
 
+    /* 카테고리 탭 (네이버 블로그 스타일) */
+    .category-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e1e1e1; padding-bottom: 10px; flex-wrap: wrap; }
+    .tab-btn { padding: 8px 18px; border-radius: 20px; border: 1px solid #ccc; background: #fff; color: #555; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .tab-btn:hover, .tab-btn.active { background: #004d2c; color: #fff; border-color: #004d2c; }
+
+    /* 모달 레이아웃 */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 2000; overflow-y: auto; backdrop-filter: blur(4px); }
     .modal-content { width: 100%; min-height: 100vh; padding: 80px 8vw 60px 8vw; position: relative; max-width: 1200px; margin: 0 auto; background: #fff; box-shadow: 0 0 30px rgba(0,0,0,0.2); }
-    .close-btn { position: fixed; top: 20px; right: 25px; font-size: 24px; cursor: pointer; color: #333; z-index: 2100; background: #ffffff; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ddd; }
-    .modal-title { font-size: 28px; color: #004d2c; margin-bottom: 25px; font-weight: 700; border-bottom: 2px solid #004d2c; padding-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .close-btn { position: fixed; top: 20px; right: 25px; font-size: 24px; cursor: pointer; color: #333; z-index: 2100; background: #ffffff; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ddd; transition: all 0.2s; }
+    .close-btn:hover { color: #004d2c; background: #f0f7f3; transform: scale(1.05); }
+    .modal-title { font-size: 28px; color: #004d2c; margin-bottom: 25px; font-weight: 700; border-bottom: 2px solid #004d2c; padding-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
 
+    /* 폼 스타일 */
     .form-group { margin-bottom: 16px; text-align: left; }
     .form-group label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; color: #333; }
-    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 11px 14px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 11px 14px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; }
+    .form-group input:focus, .form-group textarea:focus { border-color: #004d2c; outline: none; box-shadow: 0 0 0 3px rgba(0,77,44,0.1); }
     .admin-box { background: #f0f7f3; border: 1px solid #c2e0d1; padding: 22px; border-radius: 12px; margin-bottom: 30px; }
+    .admin-box h4 { color: #004d2c; font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+    /* 인스타그램 피드 및 모달 상세창 스타일 */
+    .insta-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; margin-top: 20px; }
+    .insta-card { background: #fff; border: 1px solid #e1e1e1; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative; }
+    .insta-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+    .insta-card-cover { width: 100%; height: 240px; object-fit: cover; background: #000; display: block; }
+    .insta-card-badge { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.65); color: #fff; font-size: 12px; padding: 4px 8px; border-radius: 12px; backdrop-filter: blur(2px); }
+    .insta-card-category-badge { position: absolute; top: 12px; left: 12px; background: #004d2c; color: #fff; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 8px; }
+    .insta-card-body { padding: 16px; }
+    .insta-card-title { font-weight: 700; font-size: 17px; color: #111; margin-bottom: 6px; }
+    .insta-card-date { font-size: 12px; color: #888; margin-bottom: 6px; }
+    .insta-card-snippet { font-size: 13px; color: #666; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+    /* 인스타그램 상세 대형 모달 */
+    .story-detail-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 3000; overflow-y: auto; padding: 40px 20px; backdrop-filter: blur(5px); }
+    .story-detail-box { max-width: 800px; margin: 40px auto; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; }
+    
+    .insta-carousel { position: relative; width: 100%; background: #000; overflow: hidden; }
+    .insta-carousel-track { display: flex; transition: transform 0.3s ease-in-out; width: 100%; }
+    .insta-carousel-slide { min-width: 100%; max-height: 480px; display: flex; align-items: center; justify-content: center; background: #000; }
+    .insta-carousel-slide img, .insta-carousel-slide video { width: 100%; max-height: 480px; object-fit: contain; }
+    
+    .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; background: rgba(255,255,255,0.8); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #111; z-index: 10; transition: background 0.2s; }
+    .carousel-btn:hover { background: rgba(255,255,255,1); }
+    .carousel-btn.prev { left: 12px; }
+    .carousel-btn.next { right: 12px; }
+    
+    .carousel-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 10; }
+    .carousel-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.4); cursor: pointer; transition: background 0.2s, transform 0.2s; }
+    .carousel-dot.active { background: #fff; transform: scale(1.2); }
+    .carousel-counter { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); color: #fff; font-size: 12px; padding: 3px 9px; border-radius: 12px; z-index: 10; }
+
+    .story-detail-content-box { padding: 30px; }
+    .story-detail-title { font-size: 24px; font-weight: 700; color: #004d2c; margin-bottom: 12px; }
+    .story-detail-date { font-size: 13px; color: #888; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+    .story-detail-desc { font-size: 15px; color: #333; line-height: 1.8; white-space: pre-line; }
+
+    /* 공지사항 목록 아이템 디자인 */
+    .notice-item { background: #fff; border: 1px solid #e1e1e1; padding: 18px 20px; border-radius: 10px; margin-bottom: 15px; transition: border-color 0.2s; }
+    .notice-item:hover { border-color: #004d2c; }
+    .notice-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .notice-cat-badge { font-size: 12px; background: #eaf4ee; color: #004d2c; padding: 3px 8px; border-radius: 6px; font-weight: bold; }
+    .notice-item-title { font-size: 18px; font-weight: 700; color: #222; cursor: pointer; }
+    .notice-item-title:hover { color: #004d2c; }
+    .notice-item-content { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #eee; font-size: 14px; color: #444; white-space: pre-line; }
+    .attachment-box { margin-top: 10px; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; font-size: 13px; color: #555; }
+    .attachment-box a { color: #004d2c; text-decoration: underline; font-weight: bold; }
+
+    /* 테이블 스타일 */
+    .custom-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    .custom-table th, .custom-table td { padding: 12px; border: 1px solid #e1e1e1; text-align: center; font-size: 14px; }
+    .custom-table th { background-color: #f0f7f3; color: #004d2c; font-weight: 700; }
+
+    /* QT 스타일 및 날짜 선택 바 */
+    .qt-date-picker-box { display: flex; align-items: center; gap: 12px; background: #eaf4ee; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .qt-date-picker-box label { font-weight: 700; color: #004d2c; font-size: 16px; }
+    .qt-date-picker-box input[type="date"] { padding: 8px 12px; font-size: 15px; border-radius: 6px; border: 1px solid #a3c9b2; outline: none; }
+    
+    .qt-content { background: #f0f7f4; border-left: 5px solid #004d2c; padding: 25px; border-radius: 8px; margin-bottom: 25px; font-size: 15px; line-height: 1.8; }
+    .qt-content h3 { color: #004d2c; font-size: 22px; margin-bottom: 8px; }
+    .qt-content .qt-bible { color: #555; font-weight: 600; margin-bottom: 16px; border-bottom: 1px dashed #c2e0d1; padding-bottom: 10px; }
+    .qt-content .qt-body { white-space: pre-line; color: #222; }
+    
+    .comment-item { background: #f8f9fa; border: 1px solid #eee; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; font-size: 14px; }
+    .comment-author { font-weight: 700; color: #004d2c; margin-bottom: 4px; display: flex; justify-content: space-between; }
+
+    .bible-box { background: #f0f7f4; border-left: 5px solid #004d2c; padding: 20px; border-radius: 8px; margin-top: 25px; font-style: italic; color: #00331d; font-size: 15px; line-height: 1.7; }
+    .account-box { background: #eef5f1; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 25px; font-weight: 600; font-size: 18px; color: #004d2c; border: 2px dashed #004d2c; }
 
     .toast-msg { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; z-index: 3500; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     .toast-msg.show { opacity: 1; }
 
+    .file-tip-box { background: #f0f7f3; border-left: 4px solid #004d2c; padding: 10px 14px; margin-bottom: 15px; font-size: 12px; color: #444; border-radius: 0 6px 6px 0; }
+
     footer { background-color: #1a1a1a; color: #888; padding: 40px 20px; text-align: center; font-size: 14px; }
+
+    @media (max-width: 768px) {
+      header { position: relative; background: #00331d; }
+      .top-utility { justify-content: center; flex-wrap: wrap; gap: 8px 12px; padding: 10px 16px; }
+      .top-utility a { margin-left: 0; font-size: 12px; }
+      .navbar { flex-direction: column; padding: 12px 16px; gap: 12px; }
+      .logo { font-size: 18px; }
+      .logo img { height: 32px; }
+      .nav-links { justify-content: center; gap: 10px 14px; }
+      .nav-links a { font-size: 13px; }
+      .hero { height: 50vh; min-height: 360px; }
+      .modal-content { padding: 70px 20px 40px 20px; }
+      .close-btn { top: 15px; right: 15px; width: 38px; height: 38px; font-size: 20px; }
+      .insta-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
+  <!-- 토스트 알림 메시지 -->
   <div id="toast" class="toast-msg"></div>
 
+  <!-- 헤더 -->
   <header>
     <div class="top-utility">
       <span id="loginStatusText" style="color: rgba(255,255,255,0.7); font-size: 13px;"></span>
-      <a id="navLoginBtn" onclick="openModal('loginModal')"><i class="fa-solid fa-right-to-bracket"></i> 로그인</a>
+      <a id="navLoginBtn" onclick="openModal('loginModal')"><i class="fa-solid fa-right-to-bracket"></i> 동문회원 로그인</a>
       <a id="navRegisterBtn" onclick="openModal('registerModal')"><i class="fa-solid fa-user-plus"></i> 회원가입</a>
       <a id="navAdminBtn" onclick="openModal('adminModal')"><i class="fa-solid fa-user-shield"></i> 관리자 로그인</a>
       <a id="navLogoutBtn" onclick="handleLogout()" style="display:none;"><i class="fa-solid fa-right-from-bracket"></i> 로그아웃</a>
     </div>
     <nav class="navbar">
       <a href="#" class="logo">
-        <img src="logo.png" alt="로고">
+        <img src="logo.png" alt="좋은나무국제학교 로고">
         <span>좋은나무국제학교 동문회</span>
       </a>
       <ul class="nav-links">
+        <li><a onclick="openModal('schoolModal')">학교 소개</a></li>
+        <li><a onclick="openModal('aboutModal')">동문회 소개</a></li>
         <li><a onclick="openModal('noticeModal')">공지사항</a></li>
         <li><a onclick="openModal('assignmentModal')">과제 제출란</a></li>
+        <li><a onclick="openModal('qtModal')">매일 QT</a></li>
+        <li><a onclick="openModal('storyModal')">동문 지난 이야기</a></li>
+        <li><a onclick="openModal('networkModal')">동문 네트워크</a></li>
+        <li><a onclick="openModal('donationModal')">후원 안내</a></li>
       </ul>
     </nav>
   </header>
 
+  <!-- 히어로 섹션 -->
   <section class="hero">
     <video id="heroVideo" class="hero-bg-fallback" autoplay loop muted playsinline>
       <source src="retreat.mp4" type="video/mp4">
     </video>
-    <h1>좋은나무국제학교 동문회 사이트</h1>
-    <p>성품 교육과 글로벌 리더쉽의 비전을 함께 나눕니다.</p>
+    <h1>나를 넘어! 캄보디아로! 가족을 넘어! 하나님께로!</h1>
+    <p>“그는 시냇가에 심은 나무가 철을 따라 열매를 맺으며 그 잎사귀가 마르지 아니함 같으니 그가 하는 모든 일이 다 형통하리로다” — 시편 1편 3절 —</p>
+    
+    <button class="hero-sound-toggle" onclick="toggleVideoSound()">
+      <i id="soundIcon" class="fa-solid fa-volume-xmark"></i>
+      <span id="soundText">동영상 소리 켜기</span>
+    </button>
 
     <div class="user-status-bar">
-      현재 상태: <span id="userRoleBadge" class="badge badge-guest">손님 (비로그인)</span>
+      현재 회원 상태: <span id="userRoleBadge" class="badge badge-guest">손님 (비로그인)</span>
     </div>
   </section>
 
+  <!-- 메인 카드 섹션 -->
   <main class="container">
     <div class="card-grid">
+      
+      <div class="card">
+        <div>
+          <i class="fa-solid fa-school card-icon"></i>
+          <h3>좋은나무국제학교 소개</h3>
+          <p>하나님의 성품으로 인재를 양성하는 모교 비전과 홍보 영상을 확인하세요.</p>
+        </div>
+        <button class="btn" onclick="openModal('schoolModal')">학교 둘러보기</button>
+      </div>
+
       <div class="card">
         <div>
           <i class="fa-solid fa-bullhorn card-icon"></i>
           <h3>공지사항</h3>
-          <p>동문회 소식을 확인하고 이메일 알림을 받아보세요.</p>
+          <p>동문회 소식, 취업 정보, 동아리 및 기타 공지사항을 확인하세요.</p>
         </div>
-        <button class="btn" onclick="openModal('noticeModal')">공지 확인하기</button>
+        <button class="btn" onclick="openModal('noticeModal')">소식 확인하기</button>
       </div>
 
       <div class="card">
         <div>
           <i class="fa-solid fa-file-arrow-up card-icon"></i>
           <h3>과제 제출란 (구글 드라이브)</h3>
-          <p>이화여자대학교 사이버캠퍼스처럼 PDF 과제를 직접 업로드하여 서버 드라이브로 제출합니다.</p>
+          <p>PDF 과제를 업로드하여 관리자 구글 드라이브 폴더에 안전하게 제출합니다.</p>
         </div>
         <button class="btn" onclick="openModal('assignmentModal')">과제 제출하기</button>
       </div>
+
+      <div class="card">
+        <div>
+          <i class="fa-solid fa-book-bible card-icon"></i>
+          <h3>매일 QT & 말씀</h3>
+          <p>날마다 주시는 하나님의 말씀과 묵상을 통해 믿음의 은혜를 나눕니다.</p>
+        </div>
+        <button class="btn" onclick="openModal('qtModal')">오늘의 QT 보기</button>
+      </div>
+
+      <div class="card">
+        <div>
+          <i class="fa-solid fa-images card-icon"></i>
+          <h3>동문 지난 이야기</h3>
+          <p>간증, 행사, 특별 프로그램의 이야기와 영상/사진을 감상하세요.</p>
+        </div>
+        <button class="btn" onclick="openModal('storyModal')">이야기 둘러보기</button>
+      </div>
+
+      <div class="card">
+        <div>
+          <i class="fa-solid fa-users card-icon"></i>
+          <h3>동문 네트워크</h3>
+          <p>기수별 동문 명부 및 정보를 확인하고 연결의 기회를 얻으세요.</p>
+        </div>
+        <button class="btn" onclick="openModal('networkModal')">네트워크 보기</button>
+      </div>
+
+      <div class="card">
+        <div>
+          <i class="fa-solid fa-hand-holding-heart card-icon"></i>
+          <h3>후원 안내</h3>
+          <p>후배들을 향한 따뜻한 사랑과 발전기금 후원 구좌를 안내합니다.</p>
+        </div>
+        <button class="btn" onclick="openModal('donationModal')">후원 구좌 안내</button>
+      </div>
+
     </div>
   </main>
 
-  <!-- ==================== 모달: 과제 제출란 ==================== -->
+  <!-- ==================== 새로 추가된 모달: 구글 드라이브 과제 제출란 ==================== -->
   <div id="assignmentModal" class="modal">
-    <div class="modal-content" style="max-width: 650px; min-height: auto; margin: 80px auto; border-radius: 16px;">
+    <div class="modal-content" style="max-width: 600px; min-height: auto; margin: 80px auto; border-radius: 16px;">
       <span class="close-btn" onclick="closeModal('assignmentModal')">&times;</span>
-      <div class="modal-title">
+      <div class="modal-title" style="justify-content: center; font-size: 22px;">
         <span><i class="fa-solid fa-file-pdf"></i> 온라인 과제 제출 (PDF)</span>
       </div>
       <form onsubmit="handleAssignmentUpload(event)">
@@ -141,11 +344,11 @@
           <input type="text" id="assignAuthor" placeholder="성명을 입력하세요" required>
         </div>
         <div class="form-group">
-          <label>과제/제출물 제목</label>
+          <label>과제 / 제출물 제목</label>
           <input type="text" id="assignTitle" placeholder="예: 1차 보고서 제출" required>
         </div>
         <div class="form-group">
-          <label>PDF 파일 첨부 (구글 드라이브 자동 저장)</label>
+          <label>PDF 파일 선택 (지정된 구글 드라이브에 저장됨)</label>
           <input type="file" id="assignPdfFile" accept="application/pdf" required>
         </div>
         <button type="submit" id="assignSubmitBtn" class="btn btn-success" style="width: 100%; padding: 12px; margin-top: 10px;">
@@ -155,7 +358,246 @@
     </div>
   </div>
 
-  <!-- ==================== 모달: 공지사항 (이메일 발송 지원) ==================== -->
+  <!-- ==================== 모달 1: 회원가입 ==================== -->
+  <div id="registerModal" class="modal">
+    <div class="modal-content" style="max-width: 500px; min-height: auto; margin: 80px auto; border-radius: 16px;">
+      <span class="close-btn" onclick="closeModal('registerModal')">&times;</span>
+      <div class="modal-title" style="justify-content: center; font-size: 22px;">
+        📝 동문 회원가입
+      </div>
+      <form onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label>성명 (실명)</label>
+          <input type="text" id="regName" placeholder="홍길동" required>
+        </div>
+        <div class="form-group">
+          <label>기수 / 졸업년도</label>
+          <input type="text" id="regGrad" placeholder="예: 3기 또는 2023년 졸업">
+        </div>
+        <div class="form-group">
+          <label>아이디</label>
+          <input type="text" id="regId" placeholder="사용할 아이디 입력" required>
+        </div>
+        <div class="form-group">
+          <label>비밀번호</label>
+          <input type="password" id="regPw" placeholder="비밀번호 입력" required>
+        </div>
+        <div class="form-group">
+          <label>이메일 주소 (공지 수신용)</label>
+          <input type="email" id="regEmail" placeholder="example@email.com" required>
+        </div>
+        <button type="submit" class="btn btn-success" style="width: 100%; padding: 12px; margin-top: 10px;">가입하기</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== 모달 2: 로그인 ==================== -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content" style="max-width: 480px; min-height: auto; margin: 100px auto; border-radius: 16px;">
+      <span class="close-btn" onclick="closeModal('loginModal')">&times;</span>
+      <div class="modal-title" style="justify-content: center; font-size: 22px;">
+        🔒 동문회원 로그인
+      </div>
+      <form onsubmit="handleUserLogin(event)">
+        <div class="form-group">
+          <label><i class="fa-solid fa-user"></i> 아이디</label>
+          <input type="text" id="loginId" placeholder="아이디를 입력하세요" required>
+        </div>
+        <div class="form-group">
+          <label><i class="fa-solid fa-lock"></i> 비밀번호</label>
+          <input type="password" id="loginPw" placeholder="비밀번호를 입력하세요" required>
+        </div>
+        <button type="submit" class="btn" style="width: 100%; padding: 12px;">로그인하기</button>
+        <div style="text-align: center; margin-top: 15px; font-size: 13px; color: #666;">
+          계정이 없으신가요? <a onclick="closeModal('loginModal'); openModal('registerModal');" style="color: #004d2c; font-weight: bold; cursor: pointer; text-decoration: underline;">회원가입 하기</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== 모달 3: 관리자 로그인 ==================== -->
+  <div id="adminModal" class="modal">
+    <div class="modal-content" style="max-width: 480px; min-height: auto; margin: 100px auto; border-radius: 16px;">
+      <span class="close-btn" onclick="closeModal('adminModal')">&times;</span>
+      <div class="modal-title" style="justify-content: center; color: #d9534f; font-size: 22px;">
+        🛡️ 동문회 관리자 로그인
+      </div>
+      <form onsubmit="handleAdminLogin(event)">
+        <div class="form-group">
+          <label>관리자 암호 코드</label>
+          <input type="password" id="adminCode" placeholder="관리자 암호 코드" required>
+        </div>
+        <p style="font-size: 12px; color: #888; margin-bottom: 15px;">* 설정된 관리자 비밀번호를 입력해주세요.</p>
+        <button type="submit" class="btn btn-danger" style="width: 100%; padding: 12px;">관리자 권한 인증</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== 모달 4: 좋은나무국제학교 소개 ==================== -->
+  <div id="schoolModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('schoolModal')">&times;</span>
+      <div class="modal-title">
+        <span><i class="fa-solid fa-graduation-cap"></i> 좋은나무국제학교 소개</span>
+        <button id="schoolEditBtn" class="btn btn-warning" style="display:none;" onclick="toggleSchoolEdit()"><i class="fa-solid fa-pen"></i> 관리자 학교정보 수정</button>
+      </div>
+
+      <div id="schoolEditForm" class="admin-box" style="display:none;">
+        <h4><i class="fa-solid fa-gear"></i> 학교 정보 수정 (관리자)</h4>
+        <div class="form-group">
+          <label>학교 비전 및 소개문</label>
+          <textarea id="editSchoolDesc" rows="5"></textarea>
+        </div>
+        <div class="form-group">
+          <label>학교 공식 유튜브 채널 URL</label>
+          <input type="text" id="editSchoolUrl" placeholder="https://www.youtube.com/@GoodTreeSchoolOfficial">
+        </div>
+        <div class="form-group">
+          <label>홍보 동영상 URL (YouTube 공유 링크)</label>
+          <input type="text" id="editSchoolVideo" placeholder="https://youtu.be/DtDiftyy4sU">
+        </div>
+        <button class="btn btn-success" onclick="saveSchoolInfo()"><i class="fa-solid fa-floppy-disk"></i> 저장하기</button>
+      </div>
+
+      <div id="schoolDisplayArea" style="line-height: 1.8; font-size: 16px;">
+        <p id="schoolDescText" style="white-space: pre-line; margin-bottom: 20px;">
+          좋은나무국제학교는 캄보디아 씨엠립에 위치하여, 기독교 세계관에 입각하여 글로벌 인재를 양성하는 배움터입니다.
+        </p>
+        <div id="schoolVideoContainer" style="margin: 25px 0; text-align: center;"></div>
+        <div style="background: #eef5f1; padding: 20px; border-radius: 10px; text-align: center; margin-top: 20px;">
+          <h4 style="color:#004d2c; margin-bottom: 8px;"><i class="fa-brands fa-youtube" style="color:red;"></i> 공식 유튜브 채널 방문</h4>
+          <p style="font-size: 13px; color: #666; margin-bottom: 10px;">@GoodTreeSchoolOfficial | 캄보디아 씨엠립 좋은나무국제학교 공식 유튜브 채널입니다.</p>
+          <a id="schoolWebLink" href="https://www.youtube.com/@GoodTreeSchoolOfficial" target="_blank" class="btn" style="background-color:#cc0000;"><i class="fa-brands fa-youtube"></i> 좋은나무국제학교 공식 유튜브 채널 바로가기</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 모달 5: 동문 지난 이야기 ==================== -->
+  <div id="storyModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('storyModal')">&times;</span>
+      <div class="modal-title">
+        <span><i class="fa-solid fa-photo-film"></i> 동문 지난 이야기 & 간증 영상</span>
+        <span id="storyAdminTag" style="font-size: 14px; font-weight: normal; color: #d9534f;"></span>
+      </div>
+
+      <div class="category-tabs">
+        <button class="tab-btn active" onclick="filterStoryTab('all', this)">전체 보기</button>
+        <button class="tab-btn" onclick="filterStoryTab('간증', this)">간증</button>
+        <button class="tab-btn" onclick="filterStoryTab('행사', this)">행사</button>
+        <button class="tab-btn" onclick="filterStoryTab('특별한 프로그램', this)">특별한 프로그램</button>
+      </div>
+
+      <div id="storyAdminBox" class="admin-box" style="display: none;">
+        <h4><i class="fa-solid fa-plus-circle"></i> 새 이야기/영상 등록 (관리자 권한)</h4>
+        
+        <div class="file-tip-box">
+          <i class="fa-solid fa-circle-info"></i> <strong>사진 업로드 안내:</strong><br>
+          • <strong>권한 형식:</strong> JPG, PNG, WEBP<br>
+          • <strong>권장 용량:</strong> 장당 300KB ~ 500KB 이하 (최대 1MB 미만)<br>
+          • <strong>권장 해상도:</strong> 가로 1080px ~ 1920px
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label>카테고리 선택</label>
+            <select id="storyCategory">
+              <option value="간증">간증</option>
+              <option value="행사">행사</option>
+              <option value="특별한 프로그램">특별한 프로그램</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>날짜 선택</label>
+            <input type="date" id="storyDate">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>제목</label>
+          <input type="text" id="storyTitle" placeholder="제목을 입력하세요">
+        </div>
+        <div class="form-group">
+          <label>상세 설명글</label>
+          <textarea id="storyDesc" rows="4" placeholder="자세한 스토리를 작성해 주세요."></textarea>
+        </div>
+        <div class="form-group">
+          <label>사진/동영상 미디어 첨부</label>
+          <input type="file" id="storyMedia" accept="image/jpeg,image/png,image/webp,video/*" multiple>
+        </div>
+        <div class="form-group">
+          <label>일반 파일/문서 첨부</label>
+          <input type="file" id="storyFiles" multiple>
+        </div>
+        <button class="btn btn-success" onclick="addStoryItem()"><i class="fa-solid fa-upload"></i> 영구 저장 및 등록하기</button>
+      </div>
+
+      <div id="storyFeed" class="insta-grid"></div>
+    </div>
+  </div>
+
+  <!-- 인스타그램 전용 슬라이더 대형 상세 모달 -->
+  <div id="storyDetailModal" class="story-detail-modal">
+    <div class="story-detail-box">
+      <span class="close-btn" style="position: absolute; top: 15px; right: 15px;" onclick="closeStoryDetail()">&times;</span>
+      
+      <div class="insta-carousel">
+        <span id="carouselCounter" class="carousel-counter">1/1</span>
+        <button id="carouselPrev" class="carousel-btn prev" onclick="moveCarousel(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+        <div id="carouselTrack" class="insta-carousel-track"></div>
+        <button id="carouselNext" class="carousel-btn next" onclick="moveCarousel(1)"><i class="fa-solid fa-chevron-right"></i></button>
+        <div id="carouselDots" class="carousel-dots"></div>
+      </div>
+
+      <div class="story-detail-content-box">
+        <div id="storyDetailTitle" class="story-detail-title"></div>
+        <div id="storyDetailDate" class="story-detail-date"></div>
+        <div id="storyDetailDesc" class="story-detail-desc"></div>
+        <div id="storyDetailFiles" style="margin-top:15px;"></div>
+        <div id="storyDetailAdminBtns" style="margin-top:20px; text-align:right;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 모달 6: 동문 네트워크 ==================== -->
+  <div id="networkModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('networkModal')">&times;</span>
+      <div class="modal-title">
+        <span><i class="fa-solid fa-users"></i> 동문 네트워크 & 명부</span>
+        <button id="networkAddBtn" class="btn btn-warning" style="display:none;" onclick="toggleNetworkAdminForm()"><i class="fa-solid fa-user-plus"></i> 동문 추가/관리</button>
+      </div>
+
+      <div id="networkAdminBox" class="admin-box" style="display:none;">
+        <h4><i class="fa-solid fa-pen-to-square"></i> 동문 명부 관리 (관리자)</h4>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+          <div class="form-group"><label>성명</label><input type="text" id="netName"></div>
+          <div class="form-group"><label>기수</label><input type="text" id="netGrad" placeholder="예: 1기"></div>
+          <div class="form-group"><label>소속 / 직업</label><input type="text" id="netJob"></div>
+          <div class="form-group"><label>연락처/이메일</label><input type="text" id="netContact"></div>
+        </div>
+        <button class="btn btn-success" onclick="saveNetworkItem()"><i class="fa-solid fa-plus"></i> 명부에 저장</button>
+      </div>
+
+      <h3 style="color: #004d2c; margin-bottom: 15px;">전체 동문 명부</h3>
+      <div style="overflow-x: auto;">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>기수</th>
+              <th>성명</th>
+              <th>직업 및 소속</th>
+              <th>연락처 / 정보</th>
+              <th class="admin-only-col" style="display:none;">관리</th>
+            </tr>
+          </thead>
+          <tbody id="networkTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 모달 7: 공지사항 (이메일 발송 기능 연동) ==================== -->
   <div id="noticeModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeModal('noticeModal')">&times;</span>
@@ -163,75 +605,163 @@
         <span><i class="fa-solid fa-bullhorn"></i> 동문회 공지사항</span>
       </div>
 
-      <!-- 관리자 작성 폼 -->
+      <div class="category-tabs">
+        <button class="tab-btn active" onclick="filterNoticeTab('all', this)">전체 공지</button>
+        <button class="tab-btn" onclick="filterNoticeTab('동문회 공지', this)">동문회 공지</button>
+        <button class="tab-btn" onclick="filterNoticeTab('취업 정보', this)">취업 정보</button>
+        <button class="tab-btn" onclick="filterNoticeTab('동아리 공지', this)">동아리 공지</button>
+        <button class="tab-btn" onclick="filterNoticeTab('기타 공지', this)">기타 공지</button>
+      </div>
+
+      <!-- 관리자 공지 작성 폼 -->
       <div id="noticeAdminBox" class="admin-box" style="display: none;">
         <h4><i class="fa-solid fa-pen-to-square"></i> 공지사항 작성 (관리자 권한)</h4>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label>공지 카테고리</label>
+            <select id="noticeCategory">
+              <option value="동문회 공지">동문회 공지</option>
+              <option value="취업 정보">취업 정보</option>
+              <option value="동아리 공지">동아리 공지</option>
+              <option value="기타 공지">기타 공지</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>공지 날짜 선택</label>
+            <input type="date" id="noticeDate">
+          </div>
+        </div>
         <div class="form-group">
           <label>공지 제목</label>
           <input type="text" id="noticeTitleInput" placeholder="공지 제목을 입력하세요">
         </div>
         <div class="form-group">
           <label>공지 내용</label>
-          <textarea id="noticeContentInput" rows="4" placeholder="공지 내용을 입력하세요"></textarea>
+          <textarea id="noticeContentInput" rows="4" placeholder="공지 상세 내용을 입력하세요"></textarea>
         </div>
         <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
           <input type="checkbox" id="sendEmailCheckbox" style="width: auto;">
           <label for="sendEmailCheckbox" style="margin-bottom:0; cursor:pointer; color:#d9534f; font-weight:bold;">
-            📧 가입된 모든 회원에게 이메일로 공지 전달하기
+            📧 가입된 모든 동문 회원에게 이메일로 공지 전달하기
           </label>
         </div>
-        <button class="btn btn-success" onclick="addNotice()"><i class="fa-solid fa-check"></i> 공지 등록 및 이메일 발송</button>
+        <button class="btn btn-success" onclick="addNotice()"><i class="fa-solid fa-check"></i> 공지 영구 등록 및 발송</button>
       </div>
 
       <div id="noticeList"></div>
     </div>
   </div>
 
-  <!-- 회원가입/로그인 모달 (생략 불가능 기본 폼) -->
-  <div id="registerModal" class="modal">
-    <div class="modal-content" style="max-width: 500px; min-height: auto; margin: 80px auto; border-radius: 16px;">
-      <span class="close-btn" onclick="closeModal('registerModal')">&times;</span>
-      <div class="modal-title">📝 회원가입</div>
-      <form onsubmit="handleRegister(event)">
-        <div class="form-group"><label>성명</label><input type="text" id="regName" required></div>
-        <div class="form-group"><label>아이디</label><input type="text" id="regId" required></div>
-        <div class="form-group"><label>비밀번호</label><input type="password" id="regPw" required></div>
-        <div class="form-group"><label>이메일 주소 (공지 수신용)</label><input type="email" id="regEmail" required></div>
-        <button type="submit" class="btn btn-success" style="width: 100%;">가입하기</button>
-      </form>
+  <!-- ==================== 모달 8: 매일 QT ==================== -->
+  <div id="qtModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('qtModal')">&times;</span>
+      <div class="modal-title">
+        <span><i class="fa-solid fa-book-bible"></i> 매일 QT & 말씀 묵상</span>
+        <button id="qtAdminBtn" class="btn btn-warning" style="display:none;" onclick="toggleQTEdit()"><i class="fa-solid fa-pen"></i> 해당 날짜 QT 수정</button>
+      </div>
+
+      <div id="qtEditForm" class="admin-box" style="display:none;">
+        <h4><i class="fa-solid fa-pen-to-square"></i> 해당 날짜 말씀 편집 (관리자)</h4>
+        <div class="form-group"><label>말씀 제목</label><input type="text" id="qtEditTitle"></div>
+        <div class="form-group"><label>성경 구절</label><input type="text" id="qtEditBible"></div>
+        <div class="form-group"><label>묵상 본문</label><textarea id="qtEditContent" rows="4"></textarea></div>
+        <button class="btn btn-success" onclick="saveQTData()"><i class="fa-solid fa-floppy-disk"></i> 저장하기</button>
+      </div>
+
+      <div class="qt-date-picker-box">
+        <label for="qtDatePicker"><i class="fa-regular fa-calendar-days"></i> 날짜 선택:</label>
+        <input type="date" id="qtDatePicker" onchange="loadQTByDate()">
+      </div>
+
+      <div class="qt-content">
+        <h3 id="qtTitle">매일 주시는 은혜의 말씀</h3>
+        <div class="qt-bible" id="qtBiblePassage">시편 23편 1절 - 6절</div>
+        <div class="qt-body" id="qtBodyContent">여호와는 나의 목자시니 내게 부족함이 없으리로다.</div>
+      </div>
+
+      <div style="margin-top: 30px;">
+        <h4 style="color: #004d2c; margin-bottom: 12px;"><i class="fa-solid fa-comments"></i> 은혜 나눔 & 묵상 소감</h4>
+        <div id="qtCommentsList" style="margin-bottom: 20px;"></div>
+
+        <div id="qtCommentForm">
+          <div class="form-group">
+            <textarea id="qtCommentInput" rows="2" placeholder="오늘 말씀의 은혜와 묵상 소감을 나누어 주세요."></textarea>
+          </div>
+          <button class="btn" onclick="addQTComment()"><i class="fa-solid fa-paper-plane"></i> 묵상 소감 등록</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div id="loginModal" class="modal">
-    <div class="modal-content" style="max-width: 480px; min-height: auto; margin: 100px auto; border-radius: 16px;">
-      <span class="close-btn" onclick="closeModal('loginModal')">&times;</span>
-      <div class="modal-title">🔒 회원 로그인</div>
-      <form onsubmit="handleUserLogin(event)">
-        <div class="form-group"><label>아이디</label><input type="text" id="loginId" required></div>
-        <div class="form-group"><label>비밀번호</label><input type="password" id="loginPw" required></div>
-        <button type="submit" class="btn" style="width: 100%;">로그인하기</button>
-      </form>
+  <!-- ==================== 모달 9: 후원 안내 ==================== -->
+  <div id="donationModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('donationModal')">&times;</span>
+      <div class="modal-title">
+        <span><i class="fa-solid fa-hand-holding-heart"></i> 동문회 후원 안내</span>
+      </div>
+
+      <div class="account-box">
+        <i class="fa-solid fa-piggy-bank" style="font-size: 32px; margin-bottom: 10px;"></i><br>
+        농협 은행: <strong>1002-7020-5705</strong><br>
+        <span style="font-size: 15px; color: #555;">예금주: GTS동문회</span>
+      </div>
+
+      <div style="line-height: 1.8; color: #444;">
+        <h4 style="color: #004d2c; margin-bottom: 10px;">후원금 사용 안내</h4>
+        <ul style="padding-left: 20px; margin-bottom: 20px;">
+          <li>모교 장학금 전달 및 재학생 후원 사업</li>
+          <li>정기 동문 총회 및 동문회 사업</li>
+          <li>선교지 동문 사역 지원 및 긴급 구호</li>
+        </ul>
+        <p>동문 여러분의 소중한 후원은 좋은나무국제학교 후배들의 꿈과 미래를 밝히는 큰 힘이 됩니다.</p>
+      </div>
     </div>
   </div>
 
-  <div id="adminModal" class="modal">
-    <div class="modal-content" style="max-width: 480px; min-height: auto; margin: 100px auto; border-radius: 16px;">
-      <span class="close-btn" onclick="closeModal('adminModal')">&times;</span>
-      <div class="modal-title" style="color: #d9534f;">🛡️ 관리자 로그인</div>
-      <form onsubmit="handleAdminLogin(event)">
-        <div class="form-group"><label>관리자 암호</label><input type="password" id="adminCode" required></div>
-        <button type="submit" class="btn btn-danger" style="width: 100%;">관리자 인증</button>
-      </form>
+  <!-- ==================== 모달 10: 동문회 소개 ==================== -->
+  <div id="aboutModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('aboutModal')">&times;</span>
+      <div class="modal-title">
+        <span><i class="fa-solid fa-school"></i> 동문회 소개</span>
+        <button id="aboutEditBtn" class="btn btn-warning" style="display:none;" onclick="toggleAboutEdit()"><i class="fa-solid fa-pen"></i> 소개글 편집</button>
+      </div>
+
+      <div id="aboutEditForm" class="admin-box" style="display:none;">
+        <h4>관리자 소개글 수정</h4>
+        <div class="form-group">
+          <textarea id="aboutTextarea" rows="6" class="form-control"></textarea>
+        </div>
+        <button class="btn btn-success" onclick="saveAboutText()"><i class="fa-solid fa-floppy-disk"></i> 저장하기</button>
+      </div>
+
+      <div id="aboutDisplayArea" style="font-size: 16px; line-height: 1.9; color: #333; white-space: pre-line;">
+        좋은나무국제학교 동문에 오신 것을 환영합니다.
+
+        우리 좋은나무국제학교는 하나님의 사랑과 성품 교육을 바탕으로 이 시대를 이끌어갈 글로벌 인재를 양성해 왔습니다.
+
+        동문회는 졸업생 간의 긴밀한 교류와 협력을 도모하고, 모교의 발전에 기여하며, 세상 곳곳에서 빛과 소금의 역할을 감당하는 동문들의 든든한 버팀목이 되고자 설립되었습니다.
+      </div>
+
+      <div class="bible-box">
+        "그는 시냇가에 심은 나무가 철을 따라 열매를 맺으며 그 잎사귀가 마르지 아니함 같으니 그가 하는 모든 일이 다 형통하리로다" (시편 1:3)
+      </div>
     </div>
   </div>
 
+  <!-- 푸터 -->
   <footer>
-    <p>© 좋은나무국제학교 동문회. All Rights Reserved.</p>
+    <p>© 좋은나무국제학교 동문회 (Good-Tree International School Alumni Association). All Rights Reserved.</p>
+    <p style="font-size: 12px; color: #666; margin-top: 8px;">문의: alumni@goodtree.school | 공식 사이트</p>
   </footer>
 
+  <!-- ==================== 자바스크립트 로직 (기존 + Firebase + 구글드라이브 & 이메일 완전 통합) ==================== -->
   <script>
     // -----------------------------------------------------------------
-    // 1. 설정 (Firebase 및 Google Apps Script 웹 앱 URL)
+    // 0. 구글 Apps Script Web App URL & Firebase 설정 (수정 필수)
     // -----------------------------------------------------------------
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwvhEdgL9Ylg_dkZtoL7o_LvaVynFKA_cBWG45Mc59t6YIm52L46QWf5M0l7p3b4z8ELw/exec";
 
@@ -248,20 +778,79 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
+    // 1. 상태 변수
     let currentUser = JSON.parse(sessionStorage.getItem('alumni_current_user')) || null;
     let isLoggedIn = currentUser ? true : false;
     let isAdmin = currentUser ? currentUser.isAdmin : false;
 
+    let activeStoryCategory = 'all';
+    let activeNoticeCategory = 'all';
+
+    let schoolData = {
+      desc: "좋은나무국제학교는 캄보디아 씨엠립에 위치하여 기독교 세계관에 입각하여 글로벌 인재를 양성하는 배움터입니다.\n성품 교육과 탁월한 학문성을 결합하여 세계를 변화시키는 주역들을 길러냅니다.",
+      url: "https://www.youtube.com/@GoodTreeSchoolOfficial",
+      video: "https://youtu.be/DtDiftyy4sU"
+    };
+
+    const autoBibleVerses = [
+      { title: "빛과 소금의 삶", bible: "마태복음 5장 14절-16절", content: "너희는 세상의 빛이라 산 위에 있는 동네가 숨겨지지 못할 것이요...\n이같이 너희 빛이 사람 앞에 비치게 하여 그들로 너희 착한 행실을 보고 하늘에 계신 너희 아버지께 영광을 돌리게 하라." },
+      { title: "두려워하지 말라", bible: "이사야 41장 10절", content: "두려워하지 말라 내가 너와 함께 함이라 놀라지 말라 나는 네 하나님이 됨이라\n내가 너를 세업게 하리라 참으로 너를 도와 주리라." },
+      { title: "여호와는 나의 목자", bible: "시편 23편 1절-3절", content: "여호와는 나의 목자시니 내게 부족함이 없으리로다.\n나를 푸른 밭에 누이시며 쉬어갈 만한 물 가로 인도하시는도다." },
+      { title: "철을 따라 열매 맺는 나무", bible: "시편 1편 3절", content: "그는 시냇가에 심은 나무가 철을 따라 열매를 맺으며 그 잎사귀가 마르지 아니함 같으니 그가 하는 모든 일이 다 형통하리로다." }
+    ];
+
+    let currentCarouselIndex = 0;
+    let currentCarouselTotal = 0;
+    let currentStories = [];
+    let currentNotices = [];
+
+    function readFileAsDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // 2. 모달 컨트롤
     function openModal(id) {
-      document.getElementById(id).style.display = 'block';
-      document.body.style.overflow = 'hidden';
-      if (id === 'noticeModal') listenNotices();
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+
+        if (id === 'schoolModal') renderSchoolInfo();
+        if (id === 'storyModal') {
+          const storyDateInput = document.getElementById('storyDate');
+          if (storyDateInput && !storyDateInput.value) storyDateInput.value = new Date().toISOString().split('T')[0];
+          listenStories();
+        }
+        if (id === 'noticeModal') {
+          const noticeDateInput = document.getElementById('noticeDate');
+          if (noticeDateInput && !noticeDateInput.value) noticeDateInput.value = new Date().toISOString().split('T')[0];
+          listenNotices();
+        }
+        if (id === 'qtModal') initQT();
+        if (id === 'networkModal') listenNetwork();
+        if (id === 'aboutModal') updateAboutAdminUI();
+      }
     }
 
     function closeModal(id) {
-      document.getElementById(id).style.display = 'none';
-      document.body.style.overflow = 'auto';
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+      }
     }
+
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+        document.body.style.overflow = 'auto';
+      }
+    };
 
     function showToast(msg) {
       const toast = document.getElementById('toast');
@@ -270,18 +859,127 @@
       setTimeout(() => toast.classList.remove('show'), 3500);
     }
 
-    // 파일 Base64 변환 함수
-    function fileToBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = error => reject(error);
-        reader.readAsDataURL(file);
+    // 3. 동영상 사운드 제어
+    function toggleVideoSound() {
+      const video = document.getElementById('heroVideo');
+      const icon = document.getElementById('soundIcon');
+      const text = document.getElementById('soundText');
+
+      if (video.muted) {
+        video.muted = false;
+        icon.className = 'fa-solid fa-volume-high';
+        text.innerText = '동영상 소리 끄기';
+      } else {
+        video.muted = true;
+        icon.className = 'fa-solid fa-volume-xmark';
+        text.innerText = '동영상 소리 켜기';
+      }
+    }
+
+    // 4. 로그인 및 권한 UI 동기화
+    function updateAuthUI() {
+      const roleBadge = document.getElementById('userRoleBadge');
+      const loginStatusText = document.getElementById('loginStatusText');
+      const navLoginBtn = document.getElementById('navLoginBtn');
+      const navRegisterBtn = document.getElementById('navRegisterBtn');
+      const navAdminBtn = document.getElementById('navAdminBtn');
+      const navLogoutBtn = document.getElementById('navLogoutBtn');
+
+      if (isAdmin) {
+        roleBadge.className = 'badge badge-admin';
+        roleBadge.innerText = '🛡️ 관리자 권한';
+        loginStatusText.innerText = '관리자로 로그인되었습니다.';
+        navLoginBtn.style.display = 'none';
+        if (navRegisterBtn) navRegisterBtn.style.display = 'none';
+        navAdminBtn.style.display = 'none';
+        navLogoutBtn.style.display = 'inline-flex';
+      } else if (isLoggedIn) {
+        roleBadge.className = 'badge badge-user';
+        roleBadge.innerText = `🟢 ${currentUser ? currentUser.name : '회원'} 로그인됨`;
+        loginStatusText.innerText = `${currentUser ? currentUser.name : '동문'} 회원님 환영합니다.`;
+        navLoginBtn.style.display = 'none';
+        if (navRegisterBtn) navRegisterBtn.style.display = 'none';
+        navAdminBtn.style.display = 'inline-flex';
+        navLogoutBtn.style.display = 'inline-flex';
+      } else {
+        roleBadge.className = 'badge badge-guest';
+        roleBadge.innerText = '손님 (비로그인)';
+        loginStatusText.innerText = '';
+        navLoginBtn.style.display = 'inline-flex';
+        if (navRegisterBtn) navRegisterBtn.style.display = 'inline-flex';
+        navAdminBtn.style.display = 'inline-flex';
+        navLogoutBtn.style.display = 'none';
+      }
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('regName').value.trim();
+      const grad = document.getElementById('regGrad').value.trim();
+      const id = document.getElementById('regId').value.trim();
+      const pw = document.getElementById('regPw').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+
+      database.ref('users/' + id).get().then((snapshot) => {
+        if (snapshot.exists()) {
+          alert("이미 존재하는 아이디입니다.");
+        } else {
+          database.ref('users/' + id).set({ id, pw, name, grad, email, isAdmin: false }).then(() => {
+            alert(`${name} 동문님, 회원가입이 완료되었습니다!`);
+            closeModal('registerModal');
+            openModal('loginModal');
+          });
+        }
       });
     }
 
+    function handleUserLogin(e) {
+      e.preventDefault();
+      const id = document.getElementById('loginId').value.trim();
+      const pw = document.getElementById('loginPw').value.trim();
+
+      database.ref('users/' + id).get().then((snapshot) => {
+        if (snapshot.exists() && snapshot.val().pw === pw) {
+          const user = snapshot.val();
+          currentUser = { id: user.id, name: user.name, isAdmin: false };
+          isLoggedIn = true; isAdmin = false;
+          sessionStorage.setItem('alumni_current_user', JSON.stringify(currentUser));
+          showToast(`${user.name} 동문님, 환영합니다!`);
+          updateAuthUI();
+          closeModal('loginModal');
+          listenStories();
+        } else {
+          alert("아이디 또는 비밀번호가 일치하지 않습니다.");
+        }
+      });
+    }
+
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const code = document.getElementById('adminCode').value;
+      if (code === 'admin' || code === '0691') {
+        currentUser = { id: 'admin', name: '관리자', isAdmin: true };
+        isLoggedIn = true; isAdmin = true;
+        sessionStorage.setItem('alumni_current_user', JSON.stringify(currentUser));
+        updateAuthUI();
+        closeModal('adminModal');
+        showToast("관리자 권한으로 로그인되었습니다.");
+        listenStories();
+      } else {
+        alert("관리자 암호가 올바르지 않습니다.");
+      }
+    }
+
+    function handleLogout() {
+      currentUser = null; isLoggedIn = false; isAdmin = false;
+      sessionStorage.removeItem('alumni_current_user');
+      updateAuthUI();
+      showToast("로그아웃되었습니다.");
+      listenStories();
+    }
+
     // -----------------------------------------------------------------
-    // 2. 구글 드라이브 과제 제출 로직
+    // 5. 새로 추가된 기능: 구글 드라이브 과제 제출 로직
     // -----------------------------------------------------------------
     async function handleAssignmentUpload(e) {
       e.preventDefault();
@@ -289,17 +987,16 @@
       const title = document.getElementById('assignTitle').value.trim();
       const fileInput = document.getElementById('assignPdfFile');
 
-      if (!fileInput.files.length) return alert("PDF 파일을 선택하세요.");
-
+      if (!fileInput.files.length) return alert("PDF 파일을 첨부해주세요.");
       const file = fileInput.files[0];
-      if (file.type !== "application/pdf") return alert("PDF 파일만 제출이 가능합니다.");
+      if (file.type !== "application/pdf") return alert("PDF 파일만 업로드할 수 있습니다.");
 
       const submitBtn = document.getElementById('assignSubmitBtn');
       submitBtn.disabled = true;
-      submitBtn.innerText = "구글 드라이브로 파일 업로드 중...";
+      submitBtn.innerText = "구글 드라이브로 파일 저장 중...";
 
       try {
-        const base64Data = await fileToBase64(file);
+        const base64Data = (await readFileAsDataURL(file)).split(',')[1];
         const fileName = `[과제]_${author}_${title}_${file.name}`;
 
         const response = await fetch(APPS_SCRIPT_URL, {
@@ -312,17 +1009,18 @@
           })
         });
 
-        const result = await response.json();
-        if (result.status === 'success') {
-          showToast("과제가 지정된 구글 드라이브 폴더에 성공적으로 저장되었습니다!");
+        const res = await response.json();
+        if (res.status === 'success') {
+          showToast("과제가 구글 드라이브 폴더에 성공적으로 저장되었습니다!");
           closeModal('assignmentModal');
+          document.getElementById('assignAuthor').value = '';
           document.getElementById('assignTitle').value = '';
           fileInput.value = '';
         } else {
-          alert("업로드 실패: " + result.message);
+          alert("업로드 실패: " + res.message);
         }
       } catch (err) {
-        alert("업로드 중 오류 발생. Google Apps Script 연동 상태를 확인하세요.");
+        alert("업로드 처리 중 오류가 발생했습니다. APPS_SCRIPT_URL 주소를 확인하세요.");
         console.error(err);
       } finally {
         submitBtn.disabled = false;
@@ -331,29 +1029,502 @@
     }
 
     // -----------------------------------------------------------------
-    // 3. 공지사항 작성 및 회원 전체 이메일 발송
+    // 6. 학교 소개
     // -----------------------------------------------------------------
+    function renderSchoolInfo() {
+      const editBtn = document.getElementById('schoolEditBtn');
+      if (editBtn) editBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+
+      database.ref('school_info').on('value', (snapshot) => {
+        const data = snapshot.val() || schoolData;
+        document.getElementById('schoolDescText').innerText = data.desc;
+        document.getElementById('schoolWebLink').href = data.url || "https://www.youtube.com/@GoodTreeSchoolOfficial";
+
+        const videoBox = document.getElementById('schoolVideoContainer');
+        let videoId = "";
+        const videoUrl = data.video || "https://youtu.be/DtDiftyy4sU";
+        if (videoUrl.includes("youtu.be/")) videoId = videoUrl.split("youtu.be/")[1].split("?")[0];
+        else if (videoUrl.includes("watch?v=")) videoId = videoUrl.split("watch?v=")[1].split("&")[0];
+
+        if (videoId) {
+          videoBox.innerHTML = `<iframe width="100%" height="420" src="https://www.youtube.com/embed/${videoId}?rel=0" frameborder="0" allowfullscreen style="border-radius:12px; box-shadow: 0 4px 15px rgba(0,0,0,0.15);"></iframe>`;
+        } else {
+          videoBox.innerHTML = `<video src="${videoUrl}" controls style="width:100%; max-height:420px; border-radius:12px; background:#000;"></video>`;
+        }
+      });
+    }
+
+    function toggleSchoolEdit() {
+      const form = document.getElementById('schoolEditForm');
+      form.style.display = form.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function saveSchoolInfo() {
+      const desc = document.getElementById('editSchoolDesc').value.trim();
+      const url = document.getElementById('editSchoolUrl').value.trim();
+      const video = document.getElementById('editSchoolVideo').value.trim();
+
+      database.ref('school_info').set({ desc, url, video }).then(() => {
+        document.getElementById('schoolEditForm').style.display = 'none';
+        showToast("학교 정보가 수정되었습니다.");
+      });
+    }
+
+    // -----------------------------------------------------------------
+    // 7. 동문 지난 이야기
+    // -----------------------------------------------------------------
+    function filterStoryTab(cat, btn) {
+      activeStoryCategory = cat;
+      const buttons = btn.parentElement.querySelectorAll('.tab-btn');
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderStoriesUI(currentStories);
+    }
+
+    function listenStories() {
+      const adminBox = document.getElementById('storyAdminBox');
+      const adminTag = document.getElementById('storyAdminTag');
+      if (isAdmin) {
+        if (adminBox) adminBox.style.display = 'block';
+        if (adminTag) adminTag.innerText = ' (관리자 모드 실행 중)';
+      } else {
+        if (adminBox) adminBox.style.display = 'none';
+        if (adminTag) adminTag.innerText = '';
+      }
+
+      database.ref('stories').on('value', (snapshot) => {
+        const data = snapshot.val();
+        currentStories = data ? Object.values(data) : [];
+        renderStoriesUI(currentStories);
+      });
+    }
+
+    function renderStoriesUI(stories) {
+      const feed = document.getElementById('storyFeed');
+      if (!feed) return;
+
+      if (!isLoggedIn) {
+        feed.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 50px 20px; background: #ffffff; border-radius: 12px; border: 1px solid #ddd;">
+            <i class="fa-solid fa-lock" style="font-size: 36px; color: #004d2c; margin-bottom: 12px;"></i>
+            <p style="color: #555; font-size: 16px; margin-bottom: 16px;">
+              🔒 동문 이야기는 <strong>동문회 회원 로그인</strong> 후 확인하실 수 있습니다.
+            </p>
+            <button class="btn" onclick="openModal('loginModal')">로그인하러 가기</button>
+          </div>
+        `;
+        return;
+      }
+
+      stories.sort((a, b) => new Date(b.date) - new Date(a.date));
+      let filtered = activeStoryCategory === 'all' ? stories : stories.filter(s => s.category === activeStoryCategory);
+
+      if (filtered.length === 0) {
+        feed.innerHTML = '<p style="color:#888; grid-column:1/-1; text-align:center; padding: 50px;">해당 카테고리에 등록된 이야기가 없습니다.</p>';
+        return;
+      }
+
+      feed.innerHTML = filtered.map(s => {
+        let coverSrc = "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=800&auto=format&fit=crop";
+        let isVideo = false;
+        let count = s.mediaList ? s.mediaList.length : 0;
+
+        if (count > 0) {
+          coverSrc = s.mediaList[0].src;
+          if (s.mediaList[0].type === 'video') isVideo = true;
+        }
+
+        return `
+          <div class="insta-card" onclick="openStoryDetail('${s.id}')">
+            <span class="insta-card-category-badge">${s.category || '기타'}</span>
+            ${count > 1 ? `<span class="insta-card-badge"><i class="fa-regular fa-clone"></i> ${count}</span>` : ''}
+            ${isVideo ? `<video src="${coverSrc}" class="insta-card-cover"></video>` : `<img src="${coverSrc}" class="insta-card-cover" alt="커버">`}
+            <div class="insta-card-body">
+              <div class="insta-card-title">${escapeHtml(s.title)}</div>
+              <div class="insta-card-date"><i class="fa-regular fa-calendar"></i> ${s.date}</div>
+              <div class="insta-card-snippet">${escapeHtml(s.desc)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openStoryDetail(id) {
+      const story = currentStories.find(s => String(s.id) === String(id));
+      if (!story) return;
+
+      const track = document.getElementById('carouselTrack');
+      const dots = document.getElementById('carouselDots');
+      const counter = document.getElementById('carouselCounter');
+      const prevBtn = document.getElementById('carouselPrev');
+      const nextBtn = document.getElementById('carouselNext');
+
+      currentCarouselIndex = 0;
+      currentCarouselTotal = story.mediaList ? story.mediaList.length : 0;
+
+      if (currentCarouselTotal === 0) {
+        track.innerHTML = `<div class="insta-carousel-slide"><p style="color:#fff;">등록된 미디어가 없습니다.</p></div>`;
+        dots.innerHTML = ''; counter.style.display = 'none'; prevBtn.style.display = 'none'; nextBtn.style.display = 'none';
+      } else {
+        track.innerHTML = story.mediaList.map(m => `
+          <div class="insta-carousel-slide">
+            ${m.type === 'video' ? `<video src="${m.src}" controls></video>` : `<img src="${m.src}" alt="사진">`}
+          </div>
+        `).join('');
+
+        dots.innerHTML = story.mediaList.map((_, i) => `<div class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="goToCarouselSlide(${i})"></div>`).join('');
+        if (currentCarouselTotal > 1) {
+          counter.style.display = 'block'; prevBtn.style.display = 'flex'; nextBtn.style.display = 'flex';
+        } else {
+          counter.style.display = 'none'; prevBtn.style.display = 'none'; nextBtn.style.display = 'none';
+        }
+      }
+
+      updateCarouselUI();
+
+      document.getElementById('storyDetailTitle').innerText = `[${story.category}] ${story.title}`;
+      document.getElementById('storyDetailDate').innerText = `📅 등록일/행사일: ${story.date}`;
+      document.getElementById('storyDetailDesc').innerText = story.desc;
+
+      const fileBox = document.getElementById('storyDetailFiles');
+      if (story.files && story.files.length > 0) {
+        fileBox.innerHTML = `
+          <div class="attachment-box">
+            <i class="fa-solid fa-paperclip"></i> 첨부파일/문서 (${story.files.length}개):<br>
+            ${story.files.map(f => `<a href="${f.src}" download="${f.name}">${f.name}</a>`).join('<br>')}
+          </div>
+        `;
+      } else {
+        fileBox.innerHTML = '';
+      }
+
+      const btnBox = document.getElementById('storyDetailAdminBtns');
+      btnBox.innerHTML = isAdmin ? `<button class="btn btn-danger" onclick="deleteStory('${story.id}')"><i class="fa-solid fa-trash"></i> 이야기 삭제</button>` : '';
+
+      document.getElementById('storyDetailModal').style.display = 'block';
+    }
+
+    function moveCarousel(direction) {
+      currentCarouselIndex += direction;
+      if (currentCarouselIndex < 0) currentCarouselIndex = 0;
+      if (currentCarouselIndex >= currentCarouselTotal) currentCarouselIndex = currentCarouselTotal - 1;
+      updateCarouselUI();
+    }
+
+    function goToCarouselSlide(index) {
+      currentCarouselIndex = index;
+      updateCarouselUI();
+    }
+
+    function updateCarouselUI() {
+      const track = document.getElementById('carouselTrack');
+      const counter = document.getElementById('carouselCounter');
+      const dots = document.querySelectorAll('.carousel-dot');
+      const prevBtn = document.getElementById('carouselPrev');
+      const nextBtn = document.getElementById('carouselNext');
+
+      if (track) track.style.transform = `translateX(-${currentCarouselIndex * 100}%)`;
+      if (counter) counter.innerText = `${currentCarouselIndex + 1}/${currentCarouselTotal}`;
+
+      dots.forEach((dot, idx) => {
+        if (idx === currentCarouselIndex) dot.classList.add('active');
+        else dot.classList.remove('active');
+      });
+
+      if (prevBtn) prevBtn.style.opacity = currentCarouselIndex === 0 ? '0.3' : '1';
+      if (nextBtn) nextBtn.style.opacity = currentCarouselIndex === currentCarouselTotal - 1 ? '0.3' : '1';
+    }
+
+    function closeStoryDetail() {
+      document.getElementById('storyDetailModal').style.display = 'none';
+    }
+
+    async function addStoryItem() {
+      const cat = document.getElementById('storyCategory').value;
+      const selectedDate = document.getElementById('storyDate').value || new Date().toISOString().split('T')[0];
+      const title = document.getElementById('storyTitle').value.trim();
+      const desc = document.getElementById('storyDesc').value.trim();
+      const mediaInput = document.getElementById('storyMedia');
+      const fileInput = document.getElementById('storyFiles');
+
+      if (!title || !desc) return alert("제목과 상세 설명을 작성해 주세요.");
+
+      showToast("서버에 업로드 중입니다...");
+
+      let mediaList = [];
+      if (mediaInput.files.length > 0) {
+        for (let i = 0; i < mediaInput.files.length; i++) {
+          const file = mediaInput.files[i];
+          const base64Data = await readFileAsDataURL(file);
+          mediaList.push({ src: base64Data, type: file.type.startsWith('video') ? 'video' : 'image' });
+        }
+      }
+
+      let files = [];
+      if (fileInput.files.length > 0) {
+        for (let i = 0; i < fileInput.files.length; i++) {
+          const file = fileInput.files[i];
+          const base64Data = await readFileAsDataURL(file);
+          files.push({ name: file.name, src: base64Data });
+        }
+      }
+
+      const newId = Date.now();
+      database.ref('stories/' + newId).set({ id: newId, category: cat, date: selectedDate, title, desc, mediaList, files }).then(() => {
+        document.getElementById('storyTitle').value = '';
+        document.getElementById('storyDesc').value = '';
+        mediaInput.value = ''; fileInput.value = '';
+        showToast("새 동문 이야기가 영구 저장되었습니다.");
+      });
+    }
+
+    function deleteStory(id) {
+      if (confirm("이 이야기를 삭제하시겠습니까?")) {
+        database.ref('stories/' + id).remove().then(() => {
+          closeStoryDetail();
+          showToast("이야기가 삭제되었습니다.");
+        });
+      }
+    }
+
+    // -----------------------------------------------------------------
+    // 8. 동문 네트워크
+    // -----------------------------------------------------------------
+    function listenNetwork() {
+      const addBtn = document.getElementById('networkAddBtn');
+      if (addBtn) addBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+
+      const adminCols = document.querySelectorAll('.admin-only-col');
+      adminCols.forEach(col => col.style.display = isAdmin ? 'table-cell' : 'none');
+
+      database.ref('network').on('value', (snapshot) => {
+        const data = snapshot.val();
+        const list = data ? Object.values(data) : [];
+        const tbody = document.getElementById('networkTableBody');
+        tbody.innerHTML = list.map(n => `
+          <tr>
+            <td>${escapeHtml(n.grad)}</td>
+            <td><strong>${escapeHtml(n.name)}</strong></td>
+            <td>${escapeHtml(n.job)}</td>
+            <td>${escapeHtml(n.contact)}</td>
+            ${isAdmin ? `<td><button class="btn btn-danger" style="padding:3px 8px; font-size:12px;" onclick="deleteNetworkItem('${n.id}')">삭제</button></td>` : ''}
+          </tr>
+        `).join('');
+      });
+    }
+
+    function toggleNetworkAdminForm() {
+      const box = document.getElementById('networkAdminBox');
+      box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function saveNetworkItem() {
+      const name = document.getElementById('netName').value.trim();
+      const grad = document.getElementById('netGrad').value.trim();
+      const job = document.getElementById('netJob').value.trim();
+      const contact = document.getElementById('netContact').value.trim();
+
+      if (!name || !grad) return alert("성명과 기수는 필수입니다.");
+
+      const newId = Date.now();
+      database.ref('network/' + newId).set({ id: newId, name, grad, job, contact }).then(() => {
+        document.getElementById('netName').value = ''; document.getElementById('netGrad').value = '';
+        document.getElementById('netJob').value = ''; document.getElementById('netContact').value = '';
+        document.getElementById('networkAdminBox').style.display = 'none';
+        showToast("동문 정보가 명부에 저장되었습니다.");
+      });
+    }
+
+    function deleteNetworkItem(id) {
+      if (confirm("해당 동문 정보를 삭제하시겠습니까?")) {
+        database.ref('network/' + id).remove().then(() => showToast("삭제되었습니다."));
+      }
+    }
+
+    // -----------------------------------------------------------------
+    // 9. 매일 QT
+    // -----------------------------------------------------------------
+    function initQT() {
+      const datePicker = document.getElementById('qtDatePicker');
+      const today = new Date().toISOString().split('T')[0];
+      if (!datePicker.value) datePicker.value = today;
+      loadQTByDate();
+    }
+
+    function loadQTByDate() {
+      const qtAdminBtn = document.getElementById('qtAdminBtn');
+      if (qtAdminBtn) qtAdminBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+
+      const date = document.getElementById('qtDatePicker').value;
+
+      database.ref('custom_qt/' + date).on('value', (snapshot) => {
+        let qt = snapshot.val();
+        if (!qt) {
+          let hash = 0;
+          for (let i = 0; i < date.length; i++) hash = date.charCodeAt(i) + ((hash << 5) - hash);
+          const index = Math.abs(hash) % autoBibleVerses.length;
+          qt = autoBibleVerses[index];
+        }
+
+        document.getElementById('qtTitle').innerText = qt.title;
+        document.getElementById('qtBiblePassage').innerText = qt.bible;
+        document.getElementById('qtBodyContent').innerText = qt.content;
+      });
+
+      renderQTComments(date);
+    }
+
+    function toggleQTEdit() {
+      const form = document.getElementById('qtEditForm');
+      document.getElementById('qtEditTitle').value = document.getElementById('qtTitle').innerText;
+      document.getElementById('qtEditBible').value = document.getElementById('qtBiblePassage').innerText;
+      document.getElementById('qtEditContent').value = document.getElementById('qtBodyContent').innerText;
+      form.style.display = form.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function saveQTData() {
+      const date = document.getElementById('qtDatePicker').value;
+      const title = document.getElementById('qtEditTitle').value.trim();
+      const bible = document.getElementById('qtEditBible').value.trim();
+      const content = document.getElementById('qtEditContent').value.trim();
+
+      if (!title || !content) return alert("제목과 내용을 입력해 주세요.");
+
+      database.ref('custom_qt/' + date).set({ title, bible, content }).then(() => {
+        document.getElementById('qtEditForm').style.display = 'none';
+        showToast(`${date} 말씀 QT가 수정되었습니다.`);
+      });
+    }
+
+    function renderQTComments(date) {
+      const list = document.getElementById('qtCommentsList');
+
+      database.ref('qt_comments/' + date).on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+          list.innerHTML = `<p style="color:#888; font-size:13px;">${date} 날짜에 작성된 묵상 소감이 없습니다. 첫 소감을 나눠주세요!</p>`;
+          return;
+        }
+
+        const comments = Object.values(data);
+        list.innerHTML = comments.map(c => `
+          <div class="comment-item">
+            <div class="comment-author">
+              <span>${escapeHtml(c.author)}</span>
+              <span style="font-size:11px; font-weight:normal; color:#888;">${c.time}</span>
+            </div>
+            <div>${escapeHtml(c.text)}</div>
+          </div>
+        `).join('');
+      });
+    }
+
+    function addQTComment() {
+      const date = document.getElementById('qtDatePicker').value;
+      const input = document.getElementById('qtCommentInput');
+      const text = input.value.trim();
+      if (!text) return alert("소감 내용을 입력해 주세요.");
+
+      const authorName = isLoggedIn ? (isAdmin ? "관리자" : (currentUser ? currentUser.name : "동문 회원")) : "익명 동문";
+      const now = new Date();
+      const timeStr = `${now.getHours()}:${now.getMinutes() < 10 ? '0' : ''}${now.getMinutes()}`;
+
+      database.ref('qt_comments/' + date).push({
+        author: authorName,
+        text: text,
+        time: timeStr,
+        timestamp: Date.now()
+      }).then(() => {
+        input.value = '';
+        showToast("묵상 소감이 서버에 저장되었습니다.");
+      });
+    }
+
+    // -----------------------------------------------------------------
+    // 10. 공지사항 (회원 이메일 발송 기능 통합)
+    // -----------------------------------------------------------------
+    function filterNoticeTab(cat, btn) {
+      activeNoticeCategory = cat;
+      const buttons = btn.parentElement.querySelectorAll('.tab-btn');
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderNoticesUI(currentNotices);
+    }
+
+    function listenNotices() {
+      const adminBox = document.getElementById('noticeAdminBox');
+      if (adminBox) adminBox.style.display = isAdmin ? 'block' : 'none';
+
+      database.ref('notices').on('value', (snapshot) => {
+        const data = snapshot.val();
+        currentNotices = data ? Object.values(data) : [];
+        renderNoticesUI(currentNotices);
+      });
+    }
+
+    function renderNoticesUI(notices) {
+      const list = document.getElementById('noticeList');
+      notices.sort((a, b) => new Date(b.date) - new Date(a.date));
+      let filtered = activeNoticeCategory === 'all' ? notices : notices.filter(n => n.category === activeNoticeCategory);
+
+      if (!filtered || filtered.length === 0) {
+        list.innerHTML = '<p style="color:#888; text-align:center; padding:30px;">해당 카테고리에 등록된 공지사항이 없습니다.</p>';
+        return;
+      }
+
+      list.innerHTML = filtered.map(n => {
+        let fileHtml = '';
+        if (n.files && n.files.length > 0) {
+          fileHtml = `
+            <div class="attachment-box">
+              <i class="fa-solid fa-paperclip"></i> 첨부파일 (${n.files.length}개):<br>
+              ${n.files.map(f => `<a href="${f.src}" download="${f.name}">${f.name}</a>`).join('<br>')}
+            </div>
+          `;
+        }
+
+        return `
+          <div class="notice-item">
+            <div class="notice-header">
+              <span class="notice-cat-badge">${n.category || '일반 공지'}</span>
+              <span style="font-size:12px; color:#888;"><i class="fa-regular fa-calendar"></i> ${n.date}</span>
+            </div>
+            <div class="notice-item-title" onclick="toggleNoticeDetail('${n.id}')">${escapeHtml(n.title)}</div>
+            <div id="noticeDetail_${n.id}" class="notice-item-content">
+              <div>${escapeHtml(n.content)}</div>
+              ${fileHtml}
+              ${isAdmin ? `<div style="margin-top:10px; text-align:right;"><button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="deleteNotice('${n.id}')">삭제</button></div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleNoticeDetail(id) {
+      const el = document.getElementById(`noticeDetail_${id}`);
+      if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
+    }
+
     async function addNotice() {
+      const cat = document.getElementById('noticeCategory').value;
+      const selectedDate = document.getElementById('noticeDate').value || new Date().toISOString().split('T')[0];
       const title = document.getElementById('noticeTitleInput').value.trim();
       const content = document.getElementById('noticeContentInput').value.trim();
       const sendEmail = document.getElementById('sendEmailCheckbox').checked;
 
-      if (!title || !content) return alert("제목과 내용을 입력해주세요.");
+      if (!title || !content) return alert("제목과 내용을 입력해 주세요.");
 
       const newId = Date.now();
-      const date = new Date().toISOString().split('T')[0];
 
-      // Firebase 공지 등록
-      await database.ref('notices/' + newId).set({ id: newId, date, title, content });
+      // Firebase 저장
+      await database.ref('notices/' + newId).set({ id: newId, category: cat, date: selectedDate, title, content });
 
       // 이메일 전송 처리
       if (sendEmail) {
         showToast("회원 이메일 목록을 불러와 발송 중입니다...");
         const usersSnapshot = await database.ref('users').get();
         if (usersSnapshot.exists()) {
-          const usersData = usersSnapshot.val();
-          const emailList = Object.values(usersData).map(u => u.email).filter(e => e);
-
+          const emailList = Object.values(usersSnapshot.val()).map(u => u.email).filter(e => e);
           if (emailList.length > 0) {
             fetch(APPS_SCRIPT_URL, {
               method: 'POST',
@@ -364,11 +1535,11 @@
                 content: content
               })
             });
-            showToast("공지 등록 및 회원 전체 이메일 발송이 완료되었습니다.");
+            showToast("공지 등록 및 회원 전체 이메일 발송이 시작되었습니다.");
           }
         }
       } else {
-        showToast("공지가 등록되었습니다.");
+        showToast("공지가 서버에 영구 등록되었습니다.");
       }
 
       document.getElementById('noticeTitleInput').value = '';
@@ -376,77 +1547,48 @@
       document.getElementById('sendEmailCheckbox').checked = false;
     }
 
-    function listenNotices() {
-      document.getElementById('noticeAdminBox').style.display = isAdmin ? 'block' : 'none';
-      database.ref('notices').on('value', (snapshot) => {
-        const data = snapshot.val();
-        const list = data ? Object.values(data) : [];
-        const container = document.getElementById('noticeList');
-        container.innerHTML = list.map(n => `
-          <div style="border-bottom:1px solid #eee; padding:15px 0;">
-            <h4>${n.title} <small style="font-size:12px; color:#888;">(${n.date})</small></h4>
-            <p style="margin-top:5px; color:#555;">${n.content}</p>
-          </div>
-        `).join('');
+    function deleteNotice(id) {
+      if (confirm("공지를 삭제하시겠습니까?")) {
+        database.ref('notices/' + id).remove().then(() => showToast("삭제되었습니다."));
+      }
+    }
+
+    // -----------------------------------------------------------------
+    // 11. 동문회 소개
+    // -----------------------------------------------------------------
+    function updateAboutAdminUI() {
+      const btn = document.getElementById('aboutEditBtn');
+      if (btn) btn.style.display = isAdmin ? 'inline-flex' : 'none';
+
+      database.ref('about_text').on('value', (snapshot) => {
+        if (snapshot.exists()) {
+          document.getElementById('aboutDisplayArea').innerText = snapshot.val();
+        }
       });
     }
 
-    // 기본 로그인/회원가입 처리 함수
-    function handleRegister(e) {
-      e.preventDefault();
-      const name = document.getElementById('regName').value.trim();
-      const id = document.getElementById('regId').value.trim();
-      const pw = document.getElementById('regPw').value.trim();
-      const email = document.getElementById('regEmail').value.trim();
+    function toggleAboutEdit() {
+      const form = document.getElementById('aboutEditForm');
+      document.getElementById('aboutTextarea').value = document.getElementById('aboutDisplayArea').innerText;
+      form.style.display = form.style.display === 'block' ? 'none' : 'block';
+    }
 
-      database.ref('users/' + id).set({ id, pw, name, email, isAdmin: false }).then(() => {
-        alert("가입 완료되었습니다!");
-        closeModal('registerModal');
+    function saveAboutText() {
+      const text = document.getElementById('aboutTextarea').value;
+      database.ref('about_text').set(text).then(() => {
+        document.getElementById('aboutEditForm').style.display = 'none';
+        showToast("소개글이 수정되었습니다.");
       });
     }
 
-    function handleUserLogin(e) {
-      e.preventDefault();
-      const id = document.getElementById('loginId').value.trim();
-      const pw = document.getElementById('loginPw').value.trim();
-
-      database.ref('users/' + id).get().then((snapshot) => {
-        if (snapshot.exists() && snapshot.val().pw === pw) {
-          currentUser = snapshot.val();
-          isLoggedIn = true; isAdmin = false;
-          sessionStorage.setItem('alumni_current_user', JSON.stringify(currentUser));
-          updateAuthUI();
-          closeModal('loginModal');
-          showToast(`${currentUser.name}님 환영합니다!`);
-        } else alert("정보가 올바르지 않습니다.");
-      });
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    function handleAdminLogin(e) {
-      e.preventDefault();
-      if (document.getElementById('adminCode').value === '0691') {
-        currentUser = { id: 'admin', name: '관리자', isAdmin: true };
-        isLoggedIn = true; isAdmin = true;
-        sessionStorage.setItem('alumni_current_user', JSON.stringify(currentUser));
-        updateAuthUI();
-        closeModal('adminModal');
-        showToast("관리자로 로그인되었습니다.");
-      } else alert("비밀번호 불일치");
-    }
-
-    function handleLogout() {
-      currentUser = null; isLoggedIn = false; isAdmin = false;
-      sessionStorage.removeItem('alumni_current_user');
+    window.onload = function() {
       updateAuthUI();
-      showToast("로그아웃되었습니다.");
-    }
-
-    function updateAuthUI() {
-      const badge = document.getElementById('userRoleBadge');
-      badge.innerText = isAdmin ? '🛡️ 관리자' : (isLoggedIn ? `🟢 ${currentUser.name}` : '손님');
-    }
-
-    window.onload = updateAuthUI;
+    };
   </script>
 </body>
 </html>
