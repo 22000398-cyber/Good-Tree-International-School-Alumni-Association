@@ -530,6 +530,12 @@
           <label>일반 파일/문서 첨부</label>
           <input type="file" id="storyFiles" multiple>
         </div>
+        <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="sendStoryEmailCheckbox" style="width: auto;" checked>
+          <label for="sendStoryEmailCheckbox" style="margin-bottom:0; cursor:pointer; color:#004d2c; font-weight:bold;">
+            📧 가입된 모든 동문 회원에게 이메일로 활동 소식 전달하기
+          </label>
+        </div>
         <button class="btn btn-success" onclick="addStoryItem()"><i class="fa-solid fa-upload"></i> 영구 저장 및 등록하기</button>
       </div>
 
@@ -762,8 +768,8 @@
 
   <!-- ==================== 자바스크립트 로직 (동기화 & 무결성 최적화) ==================== -->
   <script>
-    // 제공된 Apps Script URL 적용
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwKmzYMLcj2yaNSNBwbBwdfmFwRWV4DVjlX3OtS85Sl/dev";
+    // 제공해 주신 새로 배포된 Apps Script URL 적용
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHl0sqiGtI8uWygV8E4YeG71YWmi42XeC7YN03z0xRvhr_ZU9ZNWsASkJMyJ9LCs-5DA/exec";
 
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
@@ -1380,6 +1386,7 @@
       const desc = document.getElementById('storyDesc').value.trim();
       const mediaInput = document.getElementById('storyMedia');
       const fileInput = document.getElementById('storyFiles');
+      const sendEmail = document.getElementById('sendStoryEmailCheckbox').checked;
 
       if (!title || !desc) return alert("제목과 상세 설명을 작성해 주세요.");
 
@@ -1413,15 +1420,32 @@
         database.ref('stories/' + newId).set(newStoryItem);
       }
 
-      // 등록 즉시 브라우저 알림 전송
+      // 1. 브라우저 알림 전송
       sendBrowserNotification("📢 [동문 지난 이야기] 새 소식", title);
+
+      // 2. 가입 회원 대상 이메일 발송
+      if (sendEmail) {
+        showToast("회원 이메일 발송 처리 중...");
+        const emailList = users.map(u => u.email).filter(e => e);
+        if (emailList.length > 0 && APPS_SCRIPT_URL) {
+          fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ 
+              action: 'sendNoticeEmail', 
+              emails: emailList, 
+              title: `[동문 활동 소식] ${title}`, 
+              content: desc 
+            })
+          }).catch(() => {});
+        }
+      }
 
       document.getElementById('storyTitle').value = '';
       document.getElementById('storyDesc').value = '';
       mediaInput.value = ''; fileInput.value = '';
 
       renderStoriesUI(currentStories);
-      showToast("새 동문 이야기 및 영상이 즉시 저장되었습니다.");
+      showToast("새 동문 이야기 및 영상이 즉시 저장되고 이메일로 전달되었습니다.");
     }
 
     function deleteStory(id) {
@@ -1708,7 +1732,7 @@
         if (emailList.length > 0 && APPS_SCRIPT_URL) {
           fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'sendNoticeEmail', emails: emailList, title, content })
+            body: JSON.stringify({ action: 'sendNoticeEmail', emails: emailList, title: `[동문회 공지] ${title}`, content })
           }).catch(() => {});
         }
       }
@@ -1718,7 +1742,7 @@
       document.getElementById('sendEmailCheckbox').checked = false;
 
       renderNoticesUI(currentNotices);
-      showToast("공지가 성공적으로 작성 및 공개되었습니다.");
+      showToast("공지가 성공적으로 작성 및 이메일로 발송되었습니다.");
     }
 
     function deleteNotice(id) {
