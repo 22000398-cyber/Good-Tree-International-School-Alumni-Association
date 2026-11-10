@@ -642,7 +642,7 @@
           <textarea id="noticeContentInput" rows="4" placeholder="공지 상세 내용을 입력하세요"></textarea>
         </div>
         <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
-          <input type="checkbox" id="sendEmailCheckbox" style="width: auto;">
+          <input type="checkbox" id="sendEmailCheckbox" style="width: auto;" checked>
           <label for="sendEmailCheckbox" style="margin-bottom:0; cursor:pointer; color:#d9534f; font-weight:bold;">
             📧 가입된 모든 동문 회원에게 이메일로 공지 전달하기
           </label>
@@ -762,7 +762,8 @@
 
   <!-- ==================== 자바스크립트 로직 (동기화 & 무결성 최적화) ==================== -->
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+    // 제공된 Apps Script URL 적용
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwKmzYMLcj2yaNSNBwbBwdfmFwRWV4DVjlX3OtS85Sl/dev";
 
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
@@ -785,6 +786,25 @@
       }
     } catch (e) {
       console.warn("Firebase 준비 불완전. LocalStorage Fallback 사용:", e);
+    }
+
+    // 웹 브라우저 실시간 알림 권한 요청
+    function requestNotificationPermission() {
+      if ("Notification" in window) {
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+          Notification.requestPermission();
+        }
+      }
+    }
+
+    // 웹 브라우저 팝업 알림 전송 함수
+    function sendBrowserNotification(title, body) {
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(title, {
+          body: body,
+          icon: "logo.png"
+        });
+      }
     }
 
     // 1. 상태 변수
@@ -811,30 +831,14 @@
 
     let currentCarouselIndex = 0;
     let currentCarouselTotal = 0;
-    let currentStories = JSON.parse(localStorage.getItem('alumni_stories')) || [
-      {
-        id: 101,
-        category: "행사",
-        date: "2025-10-15",
-        title: "2025년 총동문회 모임 및 찬양의 밤",
-        desc: "오랜만에 많은 동문들이 한자리에 모여 감사의 예배와 찬양을 드렸습니다.\n\n서로의 삶과 사역 현장을 나누며 격려하는 뜻깊은 시간이었습니다.",
-        mediaList: [{ src: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=800&auto=format&fit=crop", type: "image" }],
-        files: []
-      }
-    ];
-
-    let currentNotices = JSON.parse(localStorage.getItem('alumni_notices')) || [
-      { id: 1, category: "동문회 공지", date: "2026-03-01", title: "[공지] 2026년도 정기 총회 개최 안내", content: "2026년도 정기 총회가 개최됩니다.", files: [] },
-      { id: 2, category: "취업 정보", date: "2026-03-10", title: "[취업] 글로벌 IT 기업 추천 채용", content: "좋은나무 동문을 위한 우선 추천 채용 공고입니다.", files: [] }
-    ];
-
-    let networkList = JSON.parse(localStorage.getItem('alumni_network_list')) || [
-      { id: 1, name: "김좋은", grad: "1기", job: "IT 글로벌 리더", contact: "alumni1@goodtree.school" },
-      { id: 2, name: "이나무", grad: "2기", job: "기획 및 디자인", contact: "alumni2@goodtree.school" }
-    ];
-
+    let currentStories = JSON.parse(localStorage.getItem('alumni_stories')) || [];
+    let currentNotices = JSON.parse(localStorage.getItem('alumni_notices')) || [];
+    let networkList = JSON.parse(localStorage.getItem('alumni_network_list')) || [];
     let customQTData = JSON.parse(localStorage.getItem('alumni_custom_qt')) || {};
     let dateComments = JSON.parse(localStorage.getItem('alumni_date_comments')) || {};
+
+    let initialStoryLoad = true;
+    let initialNoticeLoad = true;
 
     function readFileAsDataURL(file) {
       return new Promise((resolve, reject) => {
@@ -1139,27 +1143,43 @@
       renderStoriesUI(currentStories);
     }
 
+    // 모든 게시판 및 수정 내용에 대한 실시간 수신 리스너
     function setupRealtimeListeners() {
       if (!isFirebaseReady) return;
 
+      // 동문 지난 이야기 실시간 수신
       database.ref('stories').on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          currentStories = Object.values(data);
+          const newStories = Object.values(data);
+          if (!initialStoryLoad && newStories.length > currentStories.length) {
+            const latest = newStories[0];
+            sendBrowserNotification("📢 [동문 지난 이야기] 새 소식", latest.title);
+          }
+          initialStoryLoad = false;
+          currentStories = newStories;
           localStorage.setItem('alumni_stories', JSON.stringify(currentStories));
           renderStoriesUI(currentStories);
         }
       });
 
+      // 공지사항 실시간 수신 및 알림 팝업 전송
       database.ref('notices').on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          currentNotices = Object.values(data);
+          const newNotices = Object.values(data);
+          if (!initialNoticeLoad && newNotices.length > currentNotices.length) {
+            const latest = newNotices[0];
+            sendBrowserNotification("🔔 [동문회 새 공지사항]", latest.title);
+          }
+          initialNoticeLoad = false;
+          currentNotices = newNotices;
           localStorage.setItem('alumni_notices', JSON.stringify(currentNotices));
           renderNoticesUI(currentNotices);
         }
       });
 
+      // 동문 네트워크 실시간 동기화
       database.ref('network').on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
@@ -1169,12 +1189,35 @@
         }
       });
 
+      // 학교 소개 실시간 동기화
       database.ref('school_info').on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
           schoolData = data;
           localStorage.setItem('alumni_school_info', JSON.stringify(schoolData));
           renderSchoolInfo();
+        }
+      });
+
+      // 동문회 소개글 실시간 동기화
+      database.ref('about_text').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          document.getElementById('aboutDisplayArea').innerText = data;
+          localStorage.setItem('alumni_about_text', data);
+        }
+      });
+
+      // 매일 QT 데이터 실시간 동기화
+      database.ref('custom_qt').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          customQTData = data;
+          localStorage.setItem('alumni_custom_qt', JSON.stringify(customQTData));
+          const datePicker = document.getElementById('qtDatePicker');
+          if (datePicker && datePicker.value) {
+            loadQTByDate();
+          }
         }
       });
     }
@@ -1369,6 +1412,9 @@
       if (isFirebaseReady) {
         database.ref('stories/' + newId).set(newStoryItem);
       }
+
+      // 등록 즉시 브라우저 알림 전송
+      sendBrowserNotification("📢 [동문 지난 이야기] 새 소식", title);
 
       document.getElementById('storyTitle').value = '';
       document.getElementById('storyDesc').value = '';
@@ -1653,10 +1699,13 @@
         database.ref('notices/' + newId).set(newNotice);
       }
 
+      // 등록 즉시 브라우저 알림 전송
+      sendBrowserNotification("🔔 [동문회 새 공지사항]", title);
+
       if (sendEmail) {
         showToast("회원 이메일 발송 처리 중...");
         const emailList = users.map(u => u.email).filter(e => e);
-        if (emailList.length > 0 && APPS_SCRIPT_URL.includes("script.google.com")) {
+        if (emailList.length > 0 && APPS_SCRIPT_URL) {
           fetch(APPS_SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'sendNoticeEmail', emails: emailList, title, content })
@@ -1718,6 +1767,7 @@
 
     window.onload = function() {
       updateAuthUI();
+      requestNotificationPermission();
       setupRealtimeListeners();
 
       const savedAbout = localStorage.getItem('alumni_about_text');
